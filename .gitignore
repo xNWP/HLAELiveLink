@@ -5,3 +5,6 @@ generated
 *.filters
 *.user
 *.props
+*.dll
+*.lib
+*.exp

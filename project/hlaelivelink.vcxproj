@@ -147,9 +147,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\generated\hxx\register.cpp" />
+    <ClCompile Include="..\source\hll_gui.cpp" />
     <ClCompile Include="..\source\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\res\c4d_symbols.h" />
+    <ClInclude Include="..\source\hll_gui.h" />
     <ClInclude Include="..\source\main.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -1,0 +1,7 @@
+STRINGTABLE
+{
+	STR_START_LISTEN				"Start Listen";
+	STR_STOP_LISTEN					"Stop Listen";
+	STR_NO_REPORT					"Nothing to report.";
+	STR_NO_CAMERA					"<< No Camera Selected >>";
+}

@@ -7,7 +7,13 @@
 
 Bool HLL::Gui::CreateLayout()
 {
-	return LoadDialogResource(DLG_HLL, nullptr, 0);
+	Bool res = GeDialog::CreateLayout();
+	res = LoadDialogResource(DLG_HLL, nullptr, 0);
+	if (res)
+	{
+		this->_lvclients.AttachListView(this, LV_CLIENTS);
+	}
+	return res;
 }
 
 Bool HLL::Gui::InitValues()
@@ -23,7 +29,7 @@ Bool HLL::Gui::InitValues()
 	if (!this->SetString(TXT_PORT, "31337"_s))
 		return false;
 
-	// this returns false even if it works, need to investigate...
+	// this returns false even if it works, confirmed bug by Maxon.
 	this->SetInt32(CBX_COORDINATE_SYSTEM, CBO_Y_UP);
 
 	if (!this->SetString(BTN_MAPPING, "<="_s))
@@ -35,6 +41,15 @@ Bool HLL::Gui::InitValues()
 	if (!this->SetString(TXT_CAMERANAME, GeLoadString(STR_NO_CAMERA)))
 		return false;
 
+	// Attach ListView for clients
+	Bool res = this->_lvclients.AttachListView(this, LV_CLIENTS);
+
+	BaseContainer layout;
+	layout.SetInt32('chck', LV_COLUMN_CHECKBOX);
+	layout.SetInt32('name', LV_COLUMN_BUTTON);
+	layout.SetInt32('disc', LV_COLUMN_BUTTON);
+	res = this->_lvclients.SetLayout(3, layout);
+
 	return true;
 }
 
@@ -43,22 +58,12 @@ Bool HLL::Gui::Command(Int32 id, const BaseContainer &msg)
 	// Called when GUI is interacted with.
 	if (id == BTN_LISTEN)
 	{
-		// to-do: Implement Server
-		String str;
-		if (this->GetString(BTN_LISTEN, str))
-		{
-			if (str == GeLoadString(STR_START_LISTEN))
-			{
-				if (!this->SetString(BTN_LISTEN, GeLoadString(STR_STOP_LISTEN)))
-					return false;
-				return true;
-			}
-			
-			if (!this->SetString(BTN_LISTEN, GeLoadString(STR_START_LISTEN)))
-				return false;
-			return true;
-		}
-		return false;
+		DiagnosticOutput("START");
+		g_SimpleThread = SimpleThread::Create().GetValue();
+		g_SimpleThread.Start();
+		DiagnosticOutput("CLEAR");
+
+		return true;
 	}
 
 	if (id == BTN_SETCAMERA)
@@ -66,6 +71,12 @@ Bool HLL::Gui::Command(Int32 id, const BaseContainer &msg)
 		// to-do: Camera Setting
 		if (!this->SetString(TXT_CAMERANAME, "Sample Camera Name"_s))
 			return false;
+
+		DiagnosticOutput("SERVER STOP");
+		g_SimpleThread.CancelAndWait();
+		g_SimpleThread = nullptr; // ERROR
+		DiagnosticOutput("CLEAR");
+
 		return true;
 	}
 
@@ -88,7 +99,101 @@ Bool HLL::Gui::Command(Int32 id, const BaseContainer &msg)
 		return false;
 	}
 
+	if (id == LV_CLIENTS)
+	{
+		Int32 action, item, col;
+		BaseContainer colData;
+		action = msg.GetInt32(BFM_ACTION_VALUE);
+		
+		if (action == LV_SIMPLE_CHECKBOXCHANGED)
+		{
+			// to-do: checkbox controls.
+			return true;
+		}
+
+		if (action == LV_SIMPLE_BUTTONCLICK)
+		{
+			item = msg.GetInt32(LV_SIMPLE_ITEM_ID);
+			col = msg.GetInt32(LV_SIMPLE_COL_ID);
+
+			// rename
+			if (col == 'name')
+			{
+				if (!this->_lvclients.GetItem(item, &colData))
+				{
+					ApplicationOutput(GeLoadString(STR_UNEXPECTED_ERROR) + "hll_gui.cpp LN 149");
+					return false;
+				}
+
+				String str = colData.GetString('name');
+				if (RenameDialog(&str))
+				{
+					colData.SetString('name', str);
+					this->_lvclients.SetItem(item, colData);
+					this->_lvclients.DataChanged();
+
+					g_ServerThread->RenameClient(item, str.GetCStringCopy());
+
+					return true;
+				}
+				return true;
+			}
+
+			// disconnect
+			if (col == 'disc')
+			{
+				g_ServerThread->DisconnectClient(item);
+				return true;
+			}
+		}
+	}
+
 	return false;
+}
+
+Bool HLL::Gui::CoreMessage(Int32 id, const BaseContainer &msg)
+{
+	// Catch messages from server to us.
+	if (id == ID_HLAELIVELINK)
+	{
+		Int32 message = (Int32)reinterpret_cast<intptr_t>(msg.GetVoid(BFM_CORE_PAR1));
+		Int32 param = (Int32)reinterpret_cast<intptr_t>(msg.GetVoid(BFM_CORE_PAR2));
+
+		if (message == HLL_EVMSG_CLIENT_CONNECT)
+		{
+			BaseContainer data;
+			data.SetString('name', String(g_ServerThread->GetClients()[param]._name));
+			data.SetString('disc', GeLoadString(STR_DISCONNECT));
+			this->_lvclients.SetItem(param, data);
+			this->_lvclients.DataChanged();
+
+			return true;
+		}
+
+		if (message == HLL_EVMSG_CLIENT_DISCONNECT)
+		{
+			Bool bReorder = param == static_cast<Int32>(g_ServerThread->GetClients().size()) ? false : true;
+			this->_lvclients.RemoveItem(param);
+
+			if (bReorder)
+			{
+				BaseContainer data;
+				for (Int32 i = param; i < static_cast<Int32>(g_ServerThread->GetClients().size()); i++)
+				{
+					this->_lvclients.GetItem(i + 1, &data);
+					this->_lvclients.SetItem(i, data);
+					this->_lvclients.RemoveItem(i + 1);
+					data = BaseContainer();
+				}
+			}
+
+			this->_lvclients.DataChanged();
+
+			return true;
+		}
+	}
+
+	return true;
 }
 
 Bool HLL::GuiCommand::Execute(BaseDocument *doc)
@@ -104,6 +209,6 @@ Bool HLL::GuiCommand::Execute(BaseDocument *doc)
 Bool HLL::RegisterHLL()
 {
 	HLL::GuiCommand *oGuiCommand = NewObjClear(HLL::GuiCommand);
-	return RegisterCommandPlugin(1050016, "HLAELiveLink"_s, 0,
+	return RegisterCommandPlugin(ID_HLAELIVELINK, "HLAELiveLink"_s, 0,
 		nullptr, "HelpString"_s, oGuiCommand);
 }

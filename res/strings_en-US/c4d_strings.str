@@ -1,7 +1,19 @@
 STRINGTABLE
 {
-	STR_START_LISTEN				"Start Listen";
-	STR_STOP_LISTEN					"Stop Listen";
-	STR_NO_REPORT					"Nothing to report.";
-	STR_NO_CAMERA					"<< No Camera Selected >>";
+	STR_START_LISTEN					"Start Listen";
+	STR_STOP_LISTEN						"Stop Listen";
+	STR_NO_REPORT						"Nothing to report.";
+	STR_NO_CAMERA						"<< No Camera Selected >>";
+	STR_CLIENT_CONNECT					"| HLAELiveLink - New Client Connected ";
+	STR_CLIENT							"Client";
+	STR_HELLO_CLIENT					"| HLAELiveLink - Successful Connection.";
+	STR_STARTING_SERVER					"| HLAELiveLink - Starting Server.";
+	STR_HOST							"Host";
+	STR_PORT							"Port";
+	STR_UNEXPECTED_ERROR				"| HLAELiveLink - Unexpected Error: ";
+	STR_DISCONNECT						"Disconnect";
+	STR_CLIENT_DISCONNECT				"| HLAELiveLink - Client Disconnected ";
+	STR_SERVER_RENAME					"| HLAELiveLink - Client Rename: ";
+	STR_SERVER_DISCONNECT				"| HLAELiveLink - The Server Has Disconnected You.";
+	STR_SERVER_DISCONNECT_SERVERSIDE	"| HLAELiveLink - Disconnecting Client ";
 }

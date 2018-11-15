@@ -8,6 +8,12 @@
 
 #include "c4d.h"
 #include "../res/c4d_symbols.h"
+#include "hll_globals.h"
+#include "hll_server.h"
+#include "hll_simplethread.h"
+
+static maxon::ThreadRefTemplate<HLL::ServerThread> g_ServerThread;
+static maxon::ThreadRefTemplate<HLL::SimpleThread> g_SimpleThread;
 
 namespace HLL
 {
@@ -20,6 +26,10 @@ namespace HLL
 		Bool CreateLayout();
 		Bool InitValues();
 		Bool Command(Int32 id, const BaseContainer &msg);
+		Bool CoreMessage(Int32 id, const BaseContainer &msg);
+
+	private:
+		SimpleListView _lvclients;
 	};
 
 	//------------------------------------------------------//

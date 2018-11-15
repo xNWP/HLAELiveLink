@@ -70,6 +70,7 @@
     <ClCompile>
       <AdditionalIncludeDirectories>C:\xCode\vcpkg\installed\x64-windows\include;../generated/hxx;../source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>MAXON_MODULE_ID="com.thatnwp.HLAELiveLink";PRIVATE_MODULE_com_thatnwp_HLAELiveLink;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4251;4800;4275;4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <IgnoreSpecificDefaultLibraries />
@@ -88,6 +89,7 @@
     <ClCompile>
       <AdditionalIncludeDirectories>C:\xCode\vcpkg\installed\x64-windows\include;../generated/hxx;../source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>MAXON_MODULE_ID="com.thatnwp.HLAELiveLink";PRIVATE_MODULE_com_thatnwp_HLAELiveLink;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4251;4800;4275;4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <IgnoreSpecificDefaultLibraries />
@@ -153,12 +155,15 @@
     <ClCompile Include="..\generated\hxx\register.cpp" />
     <ClCompile Include="..\source\hll_gui.cpp" />
     <ClCompile Include="..\source\hll_server.cpp" />
+    <ClCompile Include="..\source\hll_simplethread.cpp" />
     <ClCompile Include="..\source\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\res\c4d_symbols.h" />
+    <ClInclude Include="..\source\hll_globals.h" />
     <ClInclude Include="..\source\hll_gui.h" />
     <ClInclude Include="..\source\hll_server.h" />
+    <ClInclude Include="..\source\hll_simplethread.h" />
     <ClInclude Include="..\source\main.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -2,9 +2,9 @@ STRINGTABLE
 {
 	STR_START_LISTEN					"Start Listen";
 	STR_STOP_LISTEN						"Stop Listen";
-	STR_NO_REPORT						"Nothing to report.";
-	STR_NO_CAMERA						"<< No Camera Selected >>";
-	STR_CLIENT_CONNECT					"| HLAELiveLink - New Client Connected ";
+	STR_NO_REPORT						"Nothing to report :)";
+	STR_NO_CAMERA						"No Camera Selected";
+	STR_CLIENT_CONNECT					"New Client Connected ";
 	STR_CLIENT							"Client";
 	STR_HELLO_CLIENT					"| HLAELiveLink - Successful Connection.";
 	STR_STARTING_SERVER					"| HLAELiveLink - Starting Server.";
@@ -12,8 +12,24 @@ STRINGTABLE
 	STR_PORT							"Port";
 	STR_UNEXPECTED_ERROR				"| HLAELiveLink - Unexpected Error: ";
 	STR_DISCONNECT						"Disconnect";
-	STR_CLIENT_DISCONNECT				"| HLAELiveLink - Client Disconnected ";
+	STR_CLIENT_DISCONNECT				"Client Disconnected ";
 	STR_SERVER_RENAME					"| HLAELiveLink - Client Rename: ";
 	STR_SERVER_DISCONNECT				"| HLAELiveLink - The Server Has Disconnected You.";
 	STR_SERVER_DISCONNECT_SERVERSIDE	"| HLAELiveLink - Disconnecting Client ";
+	STR_TARGET_CSGO						"=>"; // DNT
+	STR_TARGET_CINEMA4D					"<="; // DNT
+	STR_STARTING_LISTEN					"Starting listen server...";
+	STR_LISTEN							"Listening on: ";
+	STR_LISTEN_FAILED					"Listen Failed. Due to a bug with the WebSocket library please verify your Hostname(IPv4) and Port and restart Cinema 4D to try again.";
+	STR_RESTART							"Please restart Cinema 4D to begin listening again.";
+	STR_LISTEN_SERVER_CLOSED			"Closed listen server.";
+	STR_NOT_A_CAMERA					" is not a camera.";
+	STR_CAM_NO_SELECT					"Please select a camera.";
+	STR_ACTIVE_CLIENT					"Active client: ";
+	STR_BAD_DATASTART					"Inactive client attempted to transmit data.";
+	STR_BAD_DATASTART_C					"| HLAELiveLink - The server is not currently accepting your data, dataStop has been issued.";
+	STR_BAD_DATASTOP					"The client has stopped sending data.";
+	STR_LIVE_CLIENT						"| HLAELiveLink - ## LIVE CAMERA | MODE TRANSMIT ##";
+	STR_LIVE_CLIENT_R					"| HLAELiveLink - ## LIVE CAMERA | MODE RECEIVE ##";
+	STR_INACTIVE_CLIENT					"| HLAELiveLink - You are no longer the live client.";
 }

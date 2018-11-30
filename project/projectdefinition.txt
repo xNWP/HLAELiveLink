@@ -14,3 +14,10 @@ stylecheck.level=3 // must be set after c4d=true
 
 // Custom ID
 ModuleId=com.thatnwp.HLAELiveLink
+
+// Exclude uWebSockets from project
+Exclude.Win=/uWebSockets/
+
+AdditionalLibraryDirectories=$(VCPKG_ROOT)/installed/x64-windows/lib/;$(ProjectDir)../res/libs/win64/
+AdditionalDependencies=libeay32.lib;libuv.lib;ssleay32.lib;zlib.lib;uWS.lib
+AdditionalIncludeDirectories=$(VCPKG_ROOT)/installed/x64-windows/include/

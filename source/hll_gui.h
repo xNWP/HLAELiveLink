@@ -9,14 +9,45 @@
 #include "c4d.h"
 #include "../res/c4d_symbols.h"
 #include "hll_globals.h"
+#include "hll_maths.h"
 #include "hll_server.h"
-#include "hll_simplethread.h"
+#include "maxon/lib_math.h"
+#include "maxon/timer.h"
 
-static maxon::ThreadRefTemplate<HLL::ServerThread> g_ServerThread;
-static maxon::ThreadRefTemplate<HLL::SimpleThread> g_SimpleThread;
+#define HLL_STATUSBAR_POLL_RATE		200
 
 namespace HLL
 {
+	static maxon::ThreadRefTemplate<ServerThread> g_ServerThread;
+	static maxon::TimerRef g_UpdateCamera;
+
+	/*	
+		The following static variables will be the current setting of the UI,
+		which will be preserved between opens/closes of the UI. The C4D API
+		disallows initializing Strings on the global scope. For this reason
+		we will initialize them in the InitValues() function of the GUI,
+		using the Bool g_HLL_Init to avoid resetting the values with each open.
+	*/
+	static Bool g_HLL_Init = false;
+	static String g_HLL_Hostname;
+	static String g_HLL_Port;
+	static Bool g_HLL_Listening = false;
+	static String g_HLL_Mapping;
+	static String g_HLL_Camera;
+	static String g_HLL_Listen;
+
+	static BaseObject *g_HLL_OCamera;
+	static Int32 g_HLL_ActiveClient;
+
+	struct HLL_StatusMessage
+	{
+		HLL_StatusMessage(Int32 duration, const String &msg) : timeleft(duration), message(msg) { }
+		Int32 timeleft;
+		String message;
+	};
+
+	static maxon::BaseArray<HLL_StatusMessage> g_HLL_StatusMessageQueue;
+
 	//------------------------------------------------------//
 	/// Primary GUI for the plugin
 	//------------------------------------------------------//
@@ -27,8 +58,27 @@ namespace HLL
 		Bool InitValues();
 		Bool Command(Int32 id, const BaseContainer &msg);
 		Bool CoreMessage(Int32 id, const BaseContainer &msg);
+		void Timer(const BaseContainer &msg);
 
 	private:
+		//------------------------------------------------------//
+		/// Sets the status bar to the given text for the given amount of time.
+		/// If the duration is set to 0, the message will be 'sticky', meaning it will stay until the status
+		/// bar is cleared with ClearStatusText(). If multiple sticky messages are added, the last 'sticky' message
+		/// added will be shown. Any non-'sticky' messages will be shown before sticky messages are shown.
+		/// @param[in] duration			The time in milliseconds that the message should be shown for.
+		/// @param[in] msg				The message to be shown.
+		//------------------------------------------------------//
+		void SetStatusText(Int32 duration, const String &msg);
+
+		void ClearStatusText();
+
+		//------------------------------------------------------//
+		/// Enable or disable gadgets related to the servers listening.
+		/// @param[in] val				Whether to disable or enable the gadgets.
+		//------------------------------------------------------//
+		void SetListenGadgets(const Bool &val);
+
 		SimpleListView _lvclients;
 	};
 
@@ -46,7 +96,7 @@ namespace HLL
 
 	//------------------------------------------------------//
 	/// Registers the plugin.
-	/// @return BOOL		True if successful.
+	/// @return Bool			True if successful.
 	//------------------------------------------------------//
 	Bool RegisterHLL();
 }

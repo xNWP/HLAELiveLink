@@ -68,15 +68,14 @@
       <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\xCode\vcpkg\installed\x64-windows\include;../generated/hxx;../source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VCPKG_ROOT)/installed/x64-windows/include/;../generated/hxx;../res;../source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>MAXON_MODULE_ID="com.thatnwp.HLAELiveLink";PRIVATE_MODULE_com_thatnwp_HLAELiveLink;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4251;4800;4275;4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
+      <AdditionalDependencies>libeay32.lib;libuv.lib;ssleay32.lib;zlib.lib;uWS.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries />
       <SubSystem>Console</SubSystem>
-      <AdditionalLibraryDirectories>C:\c4d-dev\plugins\HLAELiveLink\res\libs\win64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libeay32.lib;libuv.lib;ssleay32.lib;zlib.lib;uWS.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)../res/libs/win64;$(VCPKG_ROOT)/installed/x64-windows/lib/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
       <AdditionalManifestFiles />
@@ -87,15 +86,14 @@
       <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\xCode\vcpkg\installed\x64-windows\include;../generated/hxx;../source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VCPKG_ROOT)/installed/x64-windows/include/;../generated/hxx;../res;../source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>MAXON_MODULE_ID="com.thatnwp.HLAELiveLink";PRIVATE_MODULE_com_thatnwp_HLAELiveLink;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4251;4800;4275;4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
+      <AdditionalDependencies>libeay32.lib;libuv.lib;ssleay32.lib;zlib.lib;uWS.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries />
       <SubSystem>Console</SubSystem>
-      <AdditionalLibraryDirectories>C:\c4d-dev\plugins\HLAELiveLink\res\libs\win64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libeay32.lib;libuv.lib;ssleay32.lib;zlib.lib;uWS.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)../res/libs/win64;$(VCPKG_ROOT)/installed/x64-windows/lib/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
       <AdditionalManifestFiles />
@@ -154,16 +152,16 @@
   <ItemGroup>
     <ClCompile Include="..\generated\hxx\register.cpp" />
     <ClCompile Include="..\source\hll_gui.cpp" />
+    <ClCompile Include="..\source\hll_maths.cpp" />
     <ClCompile Include="..\source\hll_server.cpp" />
-    <ClCompile Include="..\source\hll_simplethread.cpp" />
     <ClCompile Include="..\source\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\res\c4d_symbols.h" />
     <ClInclude Include="..\source\hll_globals.h" />
     <ClInclude Include="..\source\hll_gui.h" />
+    <ClInclude Include="..\source\hll_maths.h" />
     <ClInclude Include="..\source\hll_server.h" />
-    <ClInclude Include="..\source\hll_simplethread.h" />
     <ClInclude Include="..\source\main.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -3,11 +3,9 @@ DIALOGSTRINGS DLG_HLL
 	DLG_HLL_TITLE					"HLAELiveLink"; // DNT
 	STR_HOSTNAME					"Host Name:";
 	STR_PORT						"Port:";
-	STR_Y_UP						"Y Up";
-	STR_NZ_UP						"-Z Up";
 	STR_SETCAMERA					"Set Camera";
-	STR_COORDINATE_SYSTEM			"Coordinate System:";
 	STR_MAPPING						"Mapping:";
 	STR_CINEMA4D					"Cinema 4D"; // DNT
 	STR_GAME						"Game";
+	STR_COPY_URI					"Copy Connect Command To Clipboard";
 }

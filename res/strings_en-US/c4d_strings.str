@@ -32,4 +32,11 @@ STRINGTABLE
 	STR_LIVE_CLIENT						"| HLAELiveLink - ## LIVE CAMERA | MODE TRANSMIT ##";
 	STR_LIVE_CLIENT_R					"| HLAELiveLink - ## LIVE CAMERA | MODE RECEIVE ##";
 	STR_INACTIVE_CLIENT					"| HLAELiveLink - You are no longer the live client.";
+	STR_VERSION							"Version";
+	STR_UPDATE							"Update";
+	STR_CHECK_FOR_UPDATES				"Automatically Check For Updates";
+	STR_CHECK_NOW						"Check Now";
+	STR_HELP_STRING						"Allows for the transmission of camera data to and from Source Engine Games via Half-Life Advanced Effects.";
+	STR_SUPPORT_HLL						"Support The Project";
+	STR_DONATE_PAYPAL					"Donate via PayPal";
 }

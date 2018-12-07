@@ -20,6 +20,29 @@ Bool HLL::Gui::InitValues()
 {
 	this->SetTimer(1);
 
+	// Init banner
+	this->_banner = NewObj(Banner).GetValue();
+	if (!this->AttachUserArea(*_banner, IMG_BANNER, USERAREAFLAGS::NONE))
+		return false;
+	this->_banner->LayoutChanged();
+	this->_banner->Redraw();
+
+	// Create Menu
+	MenuFlushAll();
+
+	MenuSubBegin(GeLoadString(STR_UPDATE));
+	MenuAddString(CHECK_FOR_UPDATES, GeLoadString(STR_CHECK_FOR_UPDATES));
+	MenuInitString(CHECK_FOR_UPDATES, true, g_HLL_CheckForUpdates);
+	MenuAddSeparator();
+	MenuAddString(CHECK_FOR_UPDATE_NOW, GeLoadString(STR_CHECK_NOW));
+	MenuSubEnd();
+
+	MenuSubBegin(GeLoadString(STR_SUPPORT_HLL));
+	MenuAddString(ID_DONATE_PAYPAL, GeLoadString(STR_DONATE_PAYPAL));
+	MenuSubEnd();
+
+	MenuFinished();
+
 	// Init default settings
 	if (!g_HLL_Init)
 	{
@@ -29,6 +52,7 @@ Bool HLL::Gui::InitValues()
 		g_HLL_Camera = GeLoadString(STR_NO_CAMERA);
 		g_HLL_Listen = GeLoadString(STR_START_LISTEN);
 		g_HLL_ActiveClient = -1;
+		g_HLL_PollRate = "30";
 
 		g_HLL_Init = true;
 	}
@@ -42,6 +66,9 @@ Bool HLL::Gui::InitValues()
 	if (!this->SetString(TXT_PORT, g_HLL_Port))
 		return false;
 
+	if (!this->SetString(TXT_POLLRATE, g_HLL_PollRate))
+		return false;
+	
 	if (!this->SetString(BTN_MAPPING, g_HLL_Mapping))
 		return false;
 
@@ -85,6 +112,25 @@ Bool HLL::Gui::InitValues()
 Bool HLL::Gui::Command(Int32 id, const BaseContainer &msg)
 {
 	// Called when GUI is interacted with.
+	if (id == CHECK_FOR_UPDATE_NOW)
+	{
+		MessageDialog("CHECK FOR UPDATE HERE"_s);
+		return true;
+	}
+
+	if (id == CHECK_FOR_UPDATES)
+	{
+		g_HLL_CheckForUpdates = !g_HLL_CheckForUpdates;
+		MenuInitString(CHECK_FOR_UPDATES, true, g_HLL_CheckForUpdates);
+		return true;
+	}
+
+	if (id == ID_DONATE_PAYPAL)
+	{
+		GeOpenHTML("https://www.paypal.me/xNWP"_s);
+		return true;
+	}
+
 	if (id == BTN_LISTEN)
 	{
 		if (!g_HLL_Listening)
@@ -107,6 +153,7 @@ Bool HLL::Gui::Command(Int32 id, const BaseContainer &msg)
 		}
 		else
 		{
+			g_UpdateCamera.Cancel();
 			this->SetString(BTN_LISTEN, GeLoadString(STR_START_LISTEN));
 			g_HLL_Listen = GeLoadString(STR_START_LISTEN);
 			this->SetListenGadgets(false);
@@ -134,6 +181,15 @@ Bool HLL::Gui::Command(Int32 id, const BaseContainer &msg)
 		if (!this->GetString(TXT_PORT, str))
 			return false;
 		g_HLL_Port = str;
+		return true;
+	}
+
+	if (id == TXT_POLLRATE)
+	{
+		String str;
+		if (!this->GetString(TXT_POLLRATE, str))
+			return false;
+		g_HLL_PollRate = str;
 		return true;
 	}
 
@@ -173,6 +229,29 @@ Bool HLL::Gui::Command(Int32 id, const BaseContainer &msg)
 		String str;
 		if (this->GetString(BTN_MAPPING, str))
 		{
+			// Deselect all clients on a mapping switch
+			std::vector<Client> c = g_ServerThread->GetClients();
+			BaseContainer data;
+			for (size_t i = 0; i < c.size(); i++)
+			{
+				data.SetBool('chck', false);
+				data.SetString('name', String(c[i]._name));
+				data.SetString('disc', GeLoadString(STR_DISCONNECT));
+				this->_lvclients.SetItem(Int32(i), data);
+			}
+			this->_lvclients.DataChanged();
+
+			// Stop any and all camera updating
+			g_UpdateCamera.Cancel();
+			if (g_HLL_ActiveClient != -1)
+			{
+				g_ServerThread->SendClient(g_HLL_ActiveClient, "mirv_input end");
+				g_ServerThread->SendClient(g_HLL_ActiveClient, "echo " + GeLoadString(STR_INACTIVE_CLIENT));
+				g_ServerThread->SendClient(g_HLL_ActiveClient, "mirv_pgl dataStop");
+			}
+			g_HLL_ActiveClient = -1;
+			this->Enable(TXT_POLLRATE, true);
+
 			if (str == GeLoadString(STR_TARGET_CINEMA4D))
 			{
 				if (!this->SetString(BTN_MAPPING, GeLoadString(STR_TARGET_CSGO)))
@@ -198,17 +277,34 @@ Bool HLL::Gui::Command(Int32 id, const BaseContainer &msg)
 		if (action == LV_SIMPLE_CHECKBOXCHANGED)
 		{
 			Int32 sid = msg.GetInt32(LV_SIMPLE_ITEM_ID);
+			if (!g_HLL_OCamera)
+			{
+				SetStatusText(4000, GeLoadString(STR_CAM_NO_SELECT));
+				// Deselect the client
+				std::vector<Client> c = g_ServerThread->GetClients();
+				BaseContainer data;
+				data.SetBool('chck', false);
+				data.SetString('name', String(c[sid]._name));
+				data.SetString('disc', GeLoadString(STR_DISCONNECT));
+				this->_lvclients.SetItem(Int32(sid), data);
+				this->_lvclients.DataChanged();
+
+				return true;
+			}			
 
 			// stop sending data to active client (if they exist)
 			if (g_HLL_ActiveClient != -1)
 			{
+				g_UpdateCamera.Cancel();
 				g_ServerThread->SendClient(g_HLL_ActiveClient, "echo " + GeLoadString(STR_INACTIVE_CLIENT));
 				g_ServerThread->SendClient(g_HLL_ActiveClient, "mirv_pgl dataStop");
+				g_ServerThread->SendClient(g_HLL_ActiveClient, "mirv_input end");
 			}
 
 			// Check if this is a deselect
 			if (sid == g_HLL_ActiveClient)
 			{
+				this->Enable(TXT_POLLRATE, true);
 				g_HLL_ActiveClient = -1;
 				return true;
 			}
@@ -233,8 +329,61 @@ Bool HLL::Gui::Command(Int32 id, const BaseContainer &msg)
 			this->SetStatusText(2000, GeLoadString(STR_ACTIVE_CLIENT) +
 				String(c[g_HLL_ActiveClient]._name));
 
-			g_ServerThread->SendClient(g_HLL_ActiveClient, "echo " + GeLoadString(STR_LIVE_CLIENT));
-			g_ServerThread->SendClient(g_HLL_ActiveClient, "mirv_pgl dataStart");
+			String o;
+			this->GetString(BTN_MAPPING, o);
+			if (o == GeLoadString(STR_TARGET_CINEMA4D)) // receive cam data
+			{
+				g_ServerThread->SendClient(g_HLL_ActiveClient, "echo " + GeLoadString(STR_LIVE_CLIENT));
+				g_ServerThread->SendClient(g_HLL_ActiveClient, "mirv_pgl dataStart");
+			}
+			else // transmit cam data
+			{
+				auto UpdateCamera = [this]()
+				{
+					if (!g_HLL_OCamera)
+					{
+						g_UpdateCamera.Cancel();
+						g_HLL_Camera = GeLoadString(STR_NO_CAMERA);
+						this->SetString(TXT_CAMERANAME, "<< " + g_HLL_Camera + " >>");
+					}
+					else
+					{
+						Vector pos = g_HLL_OCamera->GetRelPos();
+						Vector rot = g_HLL_OCamera->GetRelRot();
+
+						CameraObject *co = static_cast<CameraObject*>(g_HLL_OCamera);
+						GeData ft;
+						co->GetParameter(CAMERAOBJECT_FOV, ft, DESCFLAGS_GET::NONE);
+						
+						Float fov = ft.GetFloat();
+						fov = RadToDeg(fov);
+
+						pos = Maths::LHToRHCoordinate(pos);
+						pos = Vector(pos.z, pos.x, pos.y);
+						rot = Maths::LHToRHRotation(rot);
+						// Pitch, Heading, Roll
+						rot = Vector(RadToDeg(-rot.y), RadToDeg(-rot.x), RadToDeg(-rot.z));
+
+						g_ServerThread->SendClient(g_HLL_ActiveClient, "mirv_input position "
+							+ String::FloatToString(pos.x) + " " + String::FloatToString(pos.y) + " "
+							+ String::FloatToString(pos.z));
+						g_ServerThread->SendClient(g_HLL_ActiveClient, "mirv_input angles "
+							+ String::FloatToString(rot.x) + " " + String::FloatToString(rot.y) + " "
+							+ String::FloatToString(rot.z));
+						g_ServerThread->SendClient(g_HLL_ActiveClient, "mirv_input fov real "
+							+ String::FloatToString(fov));
+					}
+				};
+
+				this->Enable(TXT_POLLRATE, false);
+				Float pR = 1.0f / g_HLL_PollRate.ParseToFloat();
+
+				g_ServerThread->SendClient(g_HLL_ActiveClient, "echo " + GeLoadString(STR_LIVE_CLIENT_R));
+				g_ServerThread->SendClient(g_HLL_ActiveClient, "mirv_input camera");
+				g_UpdateCamera = maxon::TimerInterface::AddPeriodicTimer
+				(maxon::Seconds(pR), UpdateCamera, maxon::JOBQUEUE_CURRENT)
+					.GetValue();
+			}
 
 			return true;
 		}
@@ -302,6 +451,13 @@ Bool HLL::Gui::CoreMessage(Int32 id, const BaseContainer &msg)
 
 		if (message == HLL_EVMSG_CLIENT_DISCONNECT)
 		{
+			// Stop updating if disconnect is active client
+			if (param == g_HLL_ActiveClient)
+			{
+				g_UpdateCamera.Cancel();
+				this->Enable(TXT_POLLRATE, true);
+			}
+
 			Bool bReorder = param == static_cast<Int32>(g_ServerThread->GetClients().size()) ? false : true;
 			BaseContainer dat;
 			this->_lvclients.GetItem(param, &dat);
@@ -360,9 +516,11 @@ Bool HLL::Gui::CoreMessage(Int32 id, const BaseContainer &msg)
 
 		if (message == HLL_EVMSG_DATASTART)
 		{
-			if (param != g_HLL_ActiveClient)
+			String s;
+			this->GetString(BTN_MAPPING, s);
+			if (param != g_HLL_ActiveClient || s == GeLoadString(STR_TARGET_CSGO))
 			{
-				// Don't update if this is not the client we want
+				// Don't update if this is not the client we want or we want to be transmitting data
 				BaseContainer dat;
 				this->_lvclients.GetItem(param, &dat);
 				String cname = dat.GetString('name');
@@ -382,6 +540,8 @@ Bool HLL::Gui::CoreMessage(Int32 id, const BaseContainer &msg)
 				if (!g_HLL_OCamera)
 				{
 					g_UpdateCamera.Cancel();
+					g_HLL_Camera = GeLoadString(STR_NO_CAMERA);
+					this->SetString(TXT_CAMERANAME, "<< " + g_HLL_Camera + " >>");
 				}
 				else
 				{
@@ -404,8 +564,11 @@ Bool HLL::Gui::CoreMessage(Int32 id, const BaseContainer &msg)
 				}
 			};
 
+			this->Enable(TXT_POLLRATE, false);
+			Float pR = 1.0f / g_HLL_PollRate.ParseToFloat();
+
 			g_UpdateCamera = maxon::TimerInterface::AddPeriodicTimer
-			(maxon::Milliseconds(33), UpdateCamera, maxon::JOBQUEUE_CURRENT)
+			(maxon::Seconds(pR), UpdateCamera, maxon::JOBQUEUE_CURRENT)
 				.GetValue();
 
 			return true;
@@ -417,6 +580,7 @@ Bool HLL::Gui::CoreMessage(Int32 id, const BaseContainer &msg)
 			if (param == g_HLL_ActiveClient)
 			{
 				g_UpdateCamera.Cancel();
+				this->Enable(TXT_POLLRATE, true);
 
 				// check if the client issued this dataStop or if it was us, react accordingly.
 				BaseContainer dat;
@@ -513,9 +677,36 @@ Bool HLL::GuiCommand::Execute(BaseDocument *doc)
 	return true;
 }
 
+HLL::Gui::Banner::~Banner()
+{
+	BaseBitmap::Free(bmp);
+}
+
+void HLL::Gui::Banner::DrawMsg(Int32 x1, Int32 y1, Int32 x2, Int32 y2, const BaseContainer &msg)
+{
+	bmp = BaseBitmap::Alloc();
+	Filename imagePath(GeGetPluginPath() + "\\res" + "\\banner.png");
+	bmp->Init(imagePath);
+
+	DrawBitmap(bmp, 0, 0, bmp->GetBw(), bmp->GetBh(), 0, 0, bmp->GetBw(), bmp->GetBh(), BMP_ALLOWALPHA);
+	
+	#pragma push_macro("DrawText")
+	#undef DrawText
+	String v = GeLoadString(STR_VERSION) + " "
+		+ String::IntToString(HLL_VERSION_MAJOR) + "."
+		+ String::IntToString(HLL_VERSION_MINOR);
+	DrawSetTextCol(Vector(1.0f), COLOR_TRANS);
+	DrawSetFont(FONT_MONOSPACED);
+	DrawText(v, HLL_BANNER_WIDTH - 7, HLL_BANNER_HEIGHT - 9, DRAWTEXT_HALIGN_RIGHT | DRAWTEXT_VALIGN_BOTTOM);
+	#pragma pop_macro("DrawText")
+}
+
 Bool HLL::RegisterHLL()
 {
+	BaseBitmap *icon = BaseBitmap::Alloc();
+	Filename icoPath(GeGetPluginPath() + "\\res" + "\\icon.png");
+	icon->Init(icoPath);
 	HLL::GuiCommand *oGuiCommand = NewObjClear(HLL::GuiCommand);
 	return RegisterCommandPlugin(ID_HLAELIVELINK, "HLAELiveLink"_s, 0,
-		nullptr, "HelpString"_s, oGuiCommand);
+		icon, GeLoadString(STR_HELP_STRING), oGuiCommand);
 }

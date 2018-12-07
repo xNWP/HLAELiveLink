@@ -12,7 +12,10 @@
 #include <sstream>
 #include "maxon/thread.h"
 #pragma warning(push, 0)
+#ifdef MAXON_TARGET_WINDOWS
 #include "../uWebSockets/src/uWS.h"
+#include "maxon/utilities/undef_win_macros.h"
+#endif
 #pragma warning(pop)
 
 #define HLL_EVMSG_CLIENT_CONNECT			1

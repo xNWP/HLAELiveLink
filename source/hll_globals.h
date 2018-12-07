@@ -1,6 +1,9 @@
 #ifndef HLL_GLOBALS_H__
 #define HLL_GLOBALS_H__
 
+#define HLL_VERSION_MAJOR	1
+#define HLL_VERSION_MINOR	0
+
 #define ID_HLAELIVELINK		1050016
 
 #endif // !HLL_GLOBALS_H__

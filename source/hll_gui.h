@@ -11,13 +11,16 @@
 #include "hll_globals.h"
 #include "hll_maths.h"
 #include "hll_server.h"
-#include "maxon/lib_math.h"
 #include "maxon/timer.h"
 
 #define HLL_STATUSBAR_POLL_RATE		200
+#define HLL_BANNER_WIDTH			400
+#define HLL_BANNER_HEIGHT			77
 
 namespace HLL
 {
+	class Banner;
+
 	static maxon::ThreadRefTemplate<ServerThread> g_ServerThread;
 	static maxon::TimerRef g_UpdateCamera;
 
@@ -35,6 +38,8 @@ namespace HLL
 	static String g_HLL_Mapping;
 	static String g_HLL_Camera;
 	static String g_HLL_Listen;
+	static String g_HLL_PollRate;
+	static Bool g_HLL_CheckForUpdates = false;
 
 	static BaseObject *g_HLL_OCamera;
 	static Int32 g_HLL_ActiveClient;
@@ -53,6 +58,7 @@ namespace HLL
 	//------------------------------------------------------//
 	class Gui : public GeDialog
 	{
+		~Gui() { DeleteObj(_banner); }
 	public:
 		Bool CreateLayout();
 		Bool InitValues();
@@ -80,6 +86,19 @@ namespace HLL
 		void SetListenGadgets(const Bool &val);
 
 		SimpleListView _lvclients;
+
+		class Banner : public GeUserArea
+		{
+		public:
+			~Banner();
+			Bool GetMinSize(Int32 &w, Int32 &h) { w = HLL_BANNER_WIDTH; h = HLL_BANNER_HEIGHT; return true; }
+			void DrawMsg(Int32 x1, Int32 y1, Int32 x2, Int32 y2, const BaseContainer &msg);
+
+		private:
+			BaseBitmap *bmp;
+		};
+
+		Banner *_banner;
 	};
 
 	//------------------------------------------------------//

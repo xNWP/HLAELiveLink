@@ -6,4 +6,7 @@
 
 #define ID_HLAELIVELINK		1050016
 
+#define HLL_USERCONFIG_FILE		"userconfig.xml"
+#define HLL_UPDATE_LINK			"http://code.thatnwp.com/version/HLAELiveLinkUpdate.xml"
+
 #endif // !HLL_GLOBALS_H__

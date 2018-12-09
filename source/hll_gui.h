@@ -11,6 +11,8 @@
 #include "hll_globals.h"
 #include "hll_maths.h"
 #include "hll_server.h"
+#include "hll_tools.h"
+#include "maxon/ioxmlparser.h"
 #include "maxon/timer.h"
 
 #define HLL_STATUSBAR_POLL_RATE		200
@@ -40,6 +42,7 @@ namespace HLL
 	static String g_HLL_Listen;
 	static String g_HLL_PollRate;
 	static Bool g_HLL_CheckForUpdates = false;
+	static Bool g_HLL_UpdateChecked = false;
 
 	static BaseObject *g_HLL_OCamera;
 	static Int32 g_HLL_ActiveClient;
@@ -64,6 +67,7 @@ namespace HLL
 		Bool InitValues();
 		Bool Command(Int32 id, const BaseContainer &msg);
 		Bool CoreMessage(Int32 id, const BaseContainer &msg);
+		void DestroyWindow();
 		void Timer(const BaseContainer &msg);
 
 	private:

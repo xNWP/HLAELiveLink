@@ -39,4 +39,10 @@ STRINGTABLE
 	STR_HELP_STRING						"Allows for the transmission of camera data to and from Source Engine Games via Half-Life Advanced Effects.";
 	STR_SUPPORT_HLL						"Support The Project";
 	STR_DONATE_PAYPAL					"Donate via PayPal";
+	STR_LOADED_HLL						"Successfully loaded HLAELiveLink ";
+	STR_FAIL_LOAD_HLL					"Failed to load HLAELiveLink ";
+	STR_USER_SETTINGS_ERROR				"A critical error occurred reading userconfig.xml";
+	STR_ASK_AUTO_UPDATE					"Would you like HLAELiveLink to automatically check for updates?";
+	STR_VERSION_UPTODATE				"You are using the latest version of HLAELiveLink!";
+	STR_VERSION_OUTDATED				"An update for HLAELiveLink is available, would you link to download it now?";
 }

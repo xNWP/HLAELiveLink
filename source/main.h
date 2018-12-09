@@ -9,5 +9,6 @@
 #include "c4d.h"
 #include "c4d_plugin.h"
 #include "hll_gui.h"
+#include "maxon/ioxmlparser.h"
 
 #endif // MAIN_H__

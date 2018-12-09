@@ -27,6 +27,94 @@ Bool HLL::Gui::InitValues()
 	this->_banner->LayoutChanged();
 	this->_banner->Redraw();
 
+	// Init default settings
+	if (!g_HLL_Init)
+	{
+		g_HLL_Hostname = "127.0.0.1";
+		g_HLL_Port = "31337";
+		g_HLL_Mapping = GeLoadString(STR_TARGET_CINEMA4D);
+		g_HLL_Camera = GeLoadString(STR_NO_CAMERA);
+		g_HLL_Listen = GeLoadString(STR_START_LISTEN);
+		g_HLL_ActiveClient = -1;
+		g_HLL_PollRate = "30";
+
+		g_HLL_Init = true;
+	}
+
+	// Check settings
+	Filename userFile(GeGetPluginPath() + "\\" + HLL_USERCONFIG_FILE);
+	maxon::Url u("file:///" + userFile.GetString());
+	Int er;
+	auto xResult = maxon::IoXmlParser::ReadDocument(u, er);
+
+	if (xResult == maxon::FAILED)
+	{
+		MessageDialog(STR_USER_SETTINGS_ERROR);
+	}
+	else
+	{
+		auto xml_map = Tools::CreateMapFromXML(xResult.GetValue());
+
+		// Pull settings
+		auto setting = xml_map["settings.user.checkforupdates"_s];
+		if (setting->GetValue() == "true")
+		{
+			g_HLL_CheckForUpdates = true;
+			// check for update (we only do this once to avoid pestering the user
+			// if they open/close the gui multiple times in a session).
+			if (!g_HLL_UpdateChecked)
+			{
+				String link;
+				Bool res = Tools::CheckForUpdates(&link);
+				if (!res)
+				{
+					SetStatusText(5000, GeLoadString(STR_VERSION_UPTODATE));
+				}
+				else
+				{
+					if (QuestionDialog(STR_VERSION_OUTDATED))
+						GeOpenHTML(link);
+				}
+				g_HLL_UpdateChecked = true;
+			}
+		}
+		else if (setting->GetValue() == "false")
+		{
+			g_HLL_CheckForUpdates = false;
+		}
+		else
+		{
+			if (QuestionDialog(STR_ASK_AUTO_UPDATE))
+			{
+				setting->SetValue("true");
+				g_HLL_CheckForUpdates = true;
+			}
+			else
+			{
+				setting->SetValue("false");
+				g_HLL_CheckForUpdates = false;
+			}
+
+			// Save Update Question
+			maxon::IoXmlParser::WriteDocument(u, xResult.GetValue(), true, nullptr);
+		}
+
+		// Hostname
+		setting = xml_map["settings.user.hostname"_s];
+		if (setting->GetValue().IsPopulated())
+			g_HLL_Hostname = setting->GetValue();
+
+		// Port
+		setting = xml_map["settings.user.port"_s];
+		if (setting->GetValue().IsPopulated())
+			g_HLL_Port = setting->GetValue();
+
+		// Pollrate
+		setting = xml_map["settings.user.pollrate"_s];
+		if (setting->GetValue().IsPopulated())
+			g_HLL_PollRate = setting->GetValue();
+	}
+
 	// Create Menu
 	MenuFlushAll();
 
@@ -42,20 +130,6 @@ Bool HLL::Gui::InitValues()
 	MenuSubEnd();
 
 	MenuFinished();
-
-	// Init default settings
-	if (!g_HLL_Init)
-	{
-		g_HLL_Hostname = "127.0.0.1";
-		g_HLL_Port = "31337";
-		g_HLL_Mapping = GeLoadString(STR_TARGET_CINEMA4D);
-		g_HLL_Camera = GeLoadString(STR_NO_CAMERA);
-		g_HLL_Listen = GeLoadString(STR_START_LISTEN);
-		g_HLL_ActiveClient = -1;
-		g_HLL_PollRate = "30";
-
-		g_HLL_Init = true;
-	}
 
 	if (!this->SetString(BTN_LISTEN, g_HLL_Listen))
 		return false;
@@ -114,7 +188,18 @@ Bool HLL::Gui::Command(Int32 id, const BaseContainer &msg)
 	// Called when GUI is interacted with.
 	if (id == CHECK_FOR_UPDATE_NOW)
 	{
-		MessageDialog("CHECK FOR UPDATE HERE"_s);
+		String link;
+		Bool res = Tools::CheckForUpdates(&link);
+		if (!res)
+		{
+			SetStatusText(5000, GeLoadString(STR_VERSION_UPTODATE));
+		}
+		else
+		{
+			if (QuestionDialog(STR_VERSION_OUTDATED))
+				GeOpenHTML(link);
+		}
+
 		return true;
 	}
 
@@ -606,6 +691,43 @@ Bool HLL::Gui::CoreMessage(Int32 id, const BaseContainer &msg)
 	}
 
 	return false;
+}
+
+void HLL::Gui::DestroyWindow()
+{
+	// Save settings before closing
+	Filename userFile(GeGetPluginPath() + "\\" + HLL_USERCONFIG_FILE);
+	maxon::Url u("file:///" + userFile.GetString());
+	Int er;
+	auto xResult = maxon::IoXmlParser::ReadDocument(u, er);
+
+	if (xResult == maxon::FAILED)
+	{
+		auto error = xResult.GetError();
+		MessageDialog("USERCONFIG ERROR: "_s + error.GetMessage());
+	}
+	else
+	{
+		auto xml_file = Tools::CreateMapFromXML(xResult.GetValue());
+
+		// Updates
+		if (g_HLL_CheckForUpdates)
+			xml_file["settings.user.checkforupdates"_s]->SetValue("true");
+		else
+			xml_file["settings.user.checkforupdates"_s]->SetValue("false");
+
+		// Hostname
+		xml_file["settings.user.hostname"_s]->SetValue(g_HLL_Hostname);
+
+		// Port
+		xml_file["settings.user.port"_s]->SetValue(g_HLL_Port);
+
+		// Pollrate
+		xml_file["settings.user.pollrate"_s]->SetValue(g_HLL_PollRate);
+
+		// Write changes
+		maxon::IoXmlParser::WriteDocument(u, xResult.GetValue(), true, nullptr);
+	}
 }
 
 void HLL::Gui::Timer(const BaseContainer &msg)

@@ -8,3 +8,6 @@ generated
 *.dll
 *.lib
 *.exp
+userconfig.xml
+*.7z
+*.zip

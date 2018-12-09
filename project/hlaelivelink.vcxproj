@@ -41,6 +41,7 @@
     <Import Project="$(MAXON_ROOTDIR)\frameworks\crypt.framework\project\crypt.framework.includes.props" />
     <Import Project="$(MAXON_ROOTDIR)\frameworks\python.framework\project\python.framework.includes.props" />
     <Import Project="$(MAXON_ROOTDIR)\frameworks\core.framework\project\core.framework.includes.props" />
+    <Import Project="$(MAXON_ROOTDIR)\frameworks\misc.framework\project\misc.framework.includes.props" />
     <Import Project="$(MAXON_ROOTDIR)\frameworks\settings\sourceprocessor.buildevent" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
@@ -51,6 +52,7 @@
     <Import Project="$(MAXON_ROOTDIR)\frameworks\crypt.framework\project\crypt.framework.includes.props" />
     <Import Project="$(MAXON_ROOTDIR)\frameworks\python.framework\project\python.framework.includes.props" />
     <Import Project="$(MAXON_ROOTDIR)\frameworks\core.framework\project\core.framework.includes.props" />
+    <Import Project="$(MAXON_ROOTDIR)\frameworks\misc.framework\project\misc.framework.includes.props" />
     <Import Project="$(MAXON_ROOTDIR)\frameworks\settings\sourceprocessor.buildevent" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
@@ -75,11 +77,15 @@
       <AdditionalDependencies>libeay32.lib;libuv.lib;ssleay32.lib;zlib.lib;uWS.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries />
       <SubSystem>Console</SubSystem>
-      <AdditionalLibraryDirectories>$(ProjectDir)../res/libs/win64;$(VCPKG_ROOT)/installed/x64-windows/lib/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(VCPKG_ROOT)/installed/x64-windows/lib/;$(ProjectDir)../res/libs/win64/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
       <AdditionalManifestFiles />
     </Manifest>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Midl>
@@ -93,11 +99,15 @@
       <AdditionalDependencies>libeay32.lib;libuv.lib;ssleay32.lib;zlib.lib;uWS.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries />
       <SubSystem>Console</SubSystem>
-      <AdditionalLibraryDirectories>$(ProjectDir)../res/libs/win64;$(VCPKG_ROOT)/installed/x64-windows/lib/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(VCPKG_ROOT)/installed/x64-windows/lib/;$(ProjectDir)../res/libs/win64/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
       <AdditionalManifestFiles />
     </Manifest>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ProjectReference Include="$(MAXON_ROOTDIR)\frameworks\cinema.framework\project\cinema.framework.vcxproj">
@@ -148,12 +158,21 @@
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
+    <ProjectReference Include="$(MAXON_ROOTDIR)\frameworks\misc.framework\project\misc.framework.vcxproj">
+      <Project>{EDBA06FB-951B-0500-0009-38CB8C5CDEA3}</Project>
+      <Private>true</Private>
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\generated\hxx\register.cpp" />
     <ClCompile Include="..\source\hll_gui.cpp" />
     <ClCompile Include="..\source\hll_maths.cpp" />
     <ClCompile Include="..\source\hll_server.cpp" />
+    <ClCompile Include="..\source\hll_tools.cpp" />
     <ClCompile Include="..\source\main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -163,6 +182,7 @@
     <ClInclude Include="..\source\hll_maths.h" />
     <ClInclude Include="..\source\hll_server.h" />
     <ClInclude Include="..\source\main.h" />
+    <ClInclude Include="..\source\hll_tools.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Target Name="AfterClean">

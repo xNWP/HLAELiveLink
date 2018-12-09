@@ -7,14 +7,42 @@
 
 Bool PluginStart()
 {
+	String v = "v" + String::IntToString(HLL_VERSION_MAJOR) + "." + String::IntToString(HLL_VERSION_MINOR);
 	if (!HLL::RegisterHLL())
 	{
-		ApplicationOutput("Failed to Load HLL"_s);
+
+		ApplicationOutput(GeLoadString(STR_FAIL_LOAD_HLL) + v);
 		return false;
 	}
 	else
 	{
-		ApplicationOutput("Loaded HLL"_s);
+		ApplicationOutput(GeLoadString(STR_LOADED_HLL) + v);
+	}
+
+	Filename userFile(GeGetPluginPath() + "\\" + HLL_USERCONFIG_FILE);
+	// Create default config file if it does not exist
+	if (!GeFExist(userFile))
+	{
+		// Create head
+		maxon::IoXmlNodeInterface *t = maxon::IoXmlNodeInterface::Alloc(maxon::SourceLocation());
+		t->SetName("settings"_s);
+
+		// User Settings
+		auto user = t->AddChild("user"_s);
+
+		user->AddChild("checkforupdates"_s);
+		user->AddChild("hostname"_s);
+		user->AddChild("port"_s);
+		user->AddChild("pollrate"_s);
+
+		// Write To File
+		maxon::Url u("file:///" + userFile.GetString());
+		auto r = maxon::IoXmlParser::WriteDocument(u, t, true, nullptr);
+		if (r == maxon::FAILED)
+		{
+			const maxon::Error e = r.GetError();
+			ApplicationOutput(e.GetMessage());
+		}
 	}
 
 	return true;

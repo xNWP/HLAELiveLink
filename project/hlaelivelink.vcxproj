@@ -82,10 +82,6 @@
     <Manifest>
       <AdditionalManifestFiles />
     </Manifest>
-    <PostBuildEvent>
-      <Command>
-      </Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Midl>
@@ -104,10 +100,6 @@
     <Manifest>
       <AdditionalManifestFiles />
     </Manifest>
-    <PostBuildEvent>
-      <Command>
-      </Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ProjectReference Include="$(MAXON_ROOTDIR)\frameworks\cinema.framework\project\cinema.framework.vcxproj">
@@ -181,8 +173,8 @@
     <ClInclude Include="..\source\hll_gui.h" />
     <ClInclude Include="..\source\hll_maths.h" />
     <ClInclude Include="..\source\hll_server.h" />
-    <ClInclude Include="..\source\main.h" />
     <ClInclude Include="..\source\hll_tools.h" />
+    <ClInclude Include="..\source\main.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Target Name="AfterClean">

@@ -43,6 +43,7 @@ namespace HLL
 	static String g_HLL_PollRate;
 	static Bool g_HLL_CheckForUpdates = false;
 	static Bool g_HLL_UpdateChecked = false;
+	static Bool g_HLL_UseGlobalCoords = true;
 
 	static BaseObject *g_HLL_OCamera;
 	static Int32 g_HLL_ActiveClient;

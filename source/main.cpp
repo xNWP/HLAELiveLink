@@ -34,6 +34,7 @@ Bool PluginStart()
 		user->AddChild("hostname"_s);
 		user->AddChild("port"_s);
 		user->AddChild("pollrate"_s);
+		user->AddChild("globalcoords"_s);
 
 		// Write To File
 		maxon::Url u("file:///" + userFile.GetString());

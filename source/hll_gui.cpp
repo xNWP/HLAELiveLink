@@ -113,10 +113,29 @@ Bool HLL::Gui::InitValues()
 		setting = xml_map["settings.user.pollrate"_s];
 		if (setting->GetValue().IsPopulated())
 			g_HLL_PollRate = setting->GetValue();
+
+		// Use Global Coords
+		setting = xml_map["settings.user.globalcoords"_s];
+		if (setting->GetValue().IsPopulated())
+		{
+			if (setting->GetValue() == "true")
+			{
+				g_HLL_UseGlobalCoords = true;
+			}
+			else
+			{
+				g_HLL_UseGlobalCoords = false;
+			}
+		}
 	}
 
 	// Create Menu
 	MenuFlushAll();
+
+	MenuSubBegin(GeLoadString(STR_SETTINGS));
+	MenuAddString(ID_USE_GLOBAL_POSROT, GeLoadString(STR_USE_GLOBAL_POSROT));
+	MenuInitString(ID_USE_GLOBAL_POSROT, true, g_HLL_UseGlobalCoords);
+	MenuSubEnd();
 
 	MenuSubBegin(GeLoadString(STR_UPDATE));
 	MenuAddString(CHECK_FOR_UPDATES, GeLoadString(STR_CHECK_FOR_UPDATES));
@@ -186,6 +205,13 @@ Bool HLL::Gui::InitValues()
 Bool HLL::Gui::Command(Int32 id, const BaseContainer &msg)
 {
 	// Called when GUI is interacted with.
+	if (id == ID_USE_GLOBAL_POSROT)
+	{
+		g_HLL_UseGlobalCoords = !g_HLL_UseGlobalCoords;
+		MenuInitString(ID_USE_GLOBAL_POSROT, true, g_HLL_UseGlobalCoords);
+		return true;
+	}
+
 	if (id == CHECK_FOR_UPDATE_NOW)
 	{
 		String link;
@@ -433,8 +459,18 @@ Bool HLL::Gui::Command(Int32 id, const BaseContainer &msg)
 					}
 					else
 					{
-						Vector pos = g_HLL_OCamera->GetRelPos();
-						Vector rot = g_HLL_OCamera->GetRelRot();
+						Vector pos, rot;
+						if (g_HLL_UseGlobalCoords)
+						{
+							auto m = g_HLL_OCamera->GetMg();
+							pos = m.off;
+							rot = MatrixToHPB(m, ROTATIONORDER::HPB);
+						}
+						else
+						{
+							pos = g_HLL_OCamera->GetRelPos();
+							rot = g_HLL_OCamera->GetRelRot();
+						}
 
 						CameraObject *co = static_cast<CameraObject*>(g_HLL_OCamera);
 						GeData ft;
@@ -642,8 +678,18 @@ Bool HLL::Gui::CoreMessage(Int32 id, const BaseContainer &msg)
 					rot = Vector(DegToRad(-rot.z), DegToRad(-rot.y), DegToRad(-rot.x));
 					rot = Maths::RHToLHRotation(rot);
 
-					g_HLL_OCamera->SetRelPos(pos);
-					g_HLL_OCamera->SetRelRot(rot);
+					if (g_HLL_UseGlobalCoords)
+					{
+						auto m = HPBToMatrix(rot, ROTATIONORDER::HPB);
+						m.off = pos;
+						g_HLL_OCamera->SetMg(m);
+					}
+					else
+					{
+						g_HLL_OCamera->SetRelPos(pos);
+						g_HLL_OCamera->SetRelRot(rot);
+					}
+					
 					g_HLL_OCamera->SetParameter(CAMERAOBJECT_FOV, DegToRad(g_ServerThread->GetFov()), DESCFLAGS_SET::NONE);
 					maxon::ExecuteOnMainThread([]() {DrawViews(DRAWFLAGS::ONLY_ACTIVE_VIEW | DRAWFLAGS::NO_THREAD | DRAWFLAGS::NO_REDUCTION | DRAWFLAGS::STATICBREAK); }, false);
 				}
@@ -724,6 +770,12 @@ void HLL::Gui::DestroyWindow()
 
 		// Pollrate
 		xml_file["settings.user.pollrate"_s]->SetValue(g_HLL_PollRate);
+
+		// Global Coords
+		if (g_HLL_UseGlobalCoords)
+			xml_file["settings.user.globalcoords"_s]->SetValue("true");
+		else
+			xml_file["settings.user.globalcoords"_s]->SetValue("false");
 
 		// Write changes
 		maxon::IoXmlParser::WriteDocument(u, xResult.GetValue(), true, nullptr);

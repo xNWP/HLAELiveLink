@@ -45,4 +45,6 @@ STRINGTABLE
 	STR_ASK_AUTO_UPDATE					"Would you like HLAELiveLink to automatically check for updates?";
 	STR_VERSION_UPTODATE				"You are using the latest version of HLAELiveLink!";
 	STR_VERSION_OUTDATED				"An update for HLAELiveLink is available, would you link to download it now?";
+	STR_USE_GLOBAL_POSROT				"Use Global Position/Rotation";
+	STR_SETTINGS						"Settings";
 }

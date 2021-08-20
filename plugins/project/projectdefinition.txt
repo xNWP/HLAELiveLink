@@ -1,0 +1,8 @@
+Platform=Win64
+Type=Solution
+Solution=\
+	plugins/HLAELiveLink;
+	
+AdditionalSolutionFiles=\
+..\..\frameworks\core.framework\project\typeviewer\msvc\maxon.natvis;\
+..\..\frameworks\cinema.framework\project\typeviewer\msvc\c4dapi.natvis

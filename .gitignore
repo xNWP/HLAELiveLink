@@ -1,13 +1,1 @@
-generated
-*.ilk
-*.pdb
-*.xdl64
-*.filters
-*.user
-*.props
-*.dll
-*.lib
-*.exp
-userconfig.xml
-*.7z
-*.zip
+frameworks

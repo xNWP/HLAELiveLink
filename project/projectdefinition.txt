@@ -5,12 +5,12 @@ Platform=Win64
 Type=DLL
 
 // API dependencies
-APIS=cinema.framework;mesh_misc.framework;math.framework;crypt.framework;python.framework;core.framework;misc.framework;
+APIS=cinema.framework;mesh_misc.framework;math.framework;crypt.framework;python.framework;core.framework;misc.framework;system.framework;network.framework;command.framework;
 
 // C4D component
 C4D=true
 
-stylecheck.level=3 // must be set after c4d=true
+stylecheck.level=0
 
 // Custom ID
 ModuleId=com.thatnwp.HLAELiveLink
@@ -18,6 +18,6 @@ ModuleId=com.thatnwp.HLAELiveLink
 // Exclude uWebSockets from project
 Exclude.Win=/uWebSockets/
 
+AdditionalIncludeDirectories=../uWebSockets/src;../uWebSockets/uSockets/src;$(VCPKG_ROOT)/installed/x64-windows/include/
 AdditionalLibraryDirectories=$(VCPKG_ROOT)/installed/x64-windows/lib/;$(ProjectDir)../res/libs/win64/
-AdditionalDependencies=libeay32.lib;libuv.lib;ssleay32.lib;zlib.lib;uWS.lib
-AdditionalIncludeDirectories=$(VCPKG_ROOT)/installed/x64-windows/include/
+AdditionalDependencies=libuv.lib;uSockets.lib

@@ -1,37 +1,13 @@
 STRINGTABLE
 {
+	// Static UI Strings
 	STR_START_LISTEN					"Start Listen";
 	STR_STOP_LISTEN						"Stop Listen";
-	STR_NO_REPORT						"Nothing to report :)";
-	STR_NO_CAMERA						"No Camera Selected";
-	STR_CLIENT_CONNECT					"New Client Connected ";
 	STR_CLIENT							"Client";
-	STR_HELLO_CLIENT					"| HLAELiveLink - Successful Connection.";
-	STR_STARTING_SERVER					"| HLAELiveLink - Starting Server.";
-	STR_HOST							"Host";
-	STR_PORT							"Port";
-	STR_UNEXPECTED_ERROR				"| HLAELiveLink - Unexpected Error: ";
 	STR_DISCONNECT						"Disconnect";
-	STR_CLIENT_DISCONNECT				"Client Disconnected ";
-	STR_SERVER_RENAME					"| HLAELiveLink - Client Rename: ";
-	STR_SERVER_DISCONNECT				"| HLAELiveLink - The Server Has Disconnected You.";
-	STR_SERVER_DISCONNECT_SERVERSIDE	"| HLAELiveLink - Disconnecting Client ";
+	STR_NO_CAMERA						"No Camera Selected";
 	STR_TARGET_CSGO						"=>"; // DNT
 	STR_TARGET_CINEMA4D					"<="; // DNT
-	STR_STARTING_LISTEN					"Starting listen server...";
-	STR_LISTEN							"Listening on: ";
-	STR_LISTEN_FAILED					"Listen Failed. Due to a bug with the WebSocket library please verify your Hostname(IPv4) and Port and restart Cinema 4D to try again.";
-	STR_RESTART							"Please restart Cinema 4D to begin listening again.";
-	STR_LISTEN_SERVER_CLOSED			"Closed listen server.";
-	STR_NOT_A_CAMERA					" is not a camera.";
-	STR_CAM_NO_SELECT					"Please select a camera.";
-	STR_ACTIVE_CLIENT					"Active client: ";
-	STR_BAD_DATASTART					"Inactive client attempted to transmit data.";
-	STR_BAD_DATASTART_C					"| HLAELiveLink - The server is not currently accepting your data, dataStop has been issued.";
-	STR_BAD_DATASTOP					"The client has stopped sending data.";
-	STR_LIVE_CLIENT						"| HLAELiveLink - ## LIVE CAMERA | MODE TRANSMIT ##";
-	STR_LIVE_CLIENT_R					"| HLAELiveLink - ## LIVE CAMERA | MODE RECEIVE ##";
-	STR_INACTIVE_CLIENT					"| HLAELiveLink - You are no longer the live client.";
 	STR_VERSION							"Version";
 	STR_UPDATE							"Update";
 	STR_CHECK_FOR_UPDATES				"Automatically Check For Updates";
@@ -39,12 +15,38 @@ STRINGTABLE
 	STR_HELP_STRING						"Allows for the transmission of camera data to and from Source Engine Games via Half-Life Advanced Effects.";
 	STR_SUPPORT_HLL						"Support The Project";
 	STR_DONATE_PAYPAL					"Donate via PayPal";
-	STR_LOADED_HLL						"Successfully loaded HLAELiveLink ";
-	STR_FAIL_LOAD_HLL					"Failed to load HLAELiveLink ";
-	STR_USER_SETTINGS_ERROR				"A critical error occurred reading userconfig.xml";
 	STR_ASK_AUTO_UPDATE					"Would you like HLAELiveLink to automatically check for updates?";
 	STR_VERSION_UPTODATE				"You are using the latest version of HLAELiveLink!";
 	STR_VERSION_OUTDATED				"An update for HLAELiveLink is available, would you like to download it now?";
-	STR_USE_GLOBAL_POSROT				"Use Global Position/Rotation";
-	STR_SETTINGS						"Settings";
+	
+	// Statusbar/Log Strings
+	STR_NO_REPORT						"Nothing to report :)";
+	STR_STARTING_SERVER					"Starting Server [Host: # Port: #]";
+	STR_UNEXPECTED_ERROR				"Unexpected Error: #";
+	STR_CAM_NO_SELECT					"Please select a camera.";
+	STR_NOT_A_CAMERA					"'#' is not a camera.";
+	STR_ACTIVE_CLIENT					"Active client: #";
+	STR_LOADED_HLL						"Successfully loaded HLAELiveLink #";
+	STR_FAIL_LOAD_HLL					"Failed to load HLAELiveLink #";
+	STR_USER_SETTINGS_ERROR				"A critical error occurred reading userconfig.xml";
+	
+	// Server Messages
+	STR_SERVER_CONNECT					"New Client Connected [#]";
+	STR_SERVER_CLIENT_DISCONNECT		"Client Disconnected [#]";
+	STR_SERVER_RENAME					"Client Rename: [#]";
+	STR_SERVER_DISCONNECT				"Disconnecting Client [#]";
+	STR_SERVER_BAD_DATASTART			"Inactive client attempted to transmit data [#]";
+	STR_SERVER_BAD_DATASTOP				"The client has stopped sending data [#]";
+	STR_SERVER_LISTEN_SUCCESS			"Listening on: [#:#]";
+	STR_SERVER_LISTEN_FAILED			"Failed to listen on [#:#]; Please verify your Hostname and Port and try again.";
+	STR_SERVER_LISTEN_CLOSED			"Closed listen server.";
+	
+	// Client Messages
+	STR_CLIENT_CONNECT					"| HLAELiveLink - Successful Connection [#]";
+	STR_CLIENT_RENAME					"| HLAELiveLink - Client Rename: [#]";
+	STR_CLIENT_DISCONNECT				"| HLAELiveLink - The Server Has Disconnected You.";
+	STR_CLIENT_BAD_DATASTART			"| HLAELiveLink - The server is not currently accepting your data, dataStop has been issued.";
+	STR_CLIENT_LIVE_TRANSMIT			"| HLAELiveLink - ** LIVE CAMERA | MODE TRANSMIT **";
+	STR_CLIENT_LIVE_RECEIVE				"| HLAELiveLink - ** LIVE CAMERA | MODE RECEIVE **";
+	STR_CLIENT_INACTIVE					"| HLAELiveLink - You are no longer the live client.";
 }

@@ -14,6 +14,7 @@
 #include "hll_tools.h"
 #include "maxon/ioxmlparser.h"
 #include "maxon/timer.h"
+#include <shared_mutex>
 
 #define HLL_STATUSBAR_POLL_RATE		200
 #define HLL_BANNER_WIDTH			400
@@ -23,46 +24,12 @@ namespace HLL
 {
 	class Banner;
 
-	static maxon::ThreadRefTemplate<ServerThread> g_ServerThread;
-	static maxon::TimerRef g_UpdateCamera;
-
-	/*	
-		The following static variables will be the current setting of the UI,
-		which will be preserved between opens/closes of the UI. The C4D API
-		disallows initializing Strings on the global scope. For this reason
-		we will initialize them in the InitValues() function of the GUI,
-		using the Bool g_HLL_Init to avoid resetting the values with each open.
-	*/
-	static Bool g_HLL_Init = false;
-	static String g_HLL_Hostname;
-	static String g_HLL_Port;
-	static Bool g_HLL_Listening = false;
-	static String g_HLL_Mapping;
-	static String g_HLL_Camera;
-	static String g_HLL_Listen;
-	static String g_HLL_PollRate;
-	static Bool g_HLL_CheckForUpdates = false;
-	static Bool g_HLL_UpdateChecked = false;
-	static Bool g_HLL_UseGlobalCoords = true;
-
-	static BaseObject *g_HLL_OCamera;
-	static Int32 g_HLL_ActiveClient;
-
-	struct HLL_StatusMessage
-	{
-		HLL_StatusMessage(Int32 duration, const String &msg) : timeleft(duration), message(msg) { }
-		Int32 timeleft;
-		String message;
-	};
-
-	static maxon::BaseArray<HLL_StatusMessage> g_HLL_StatusMessageQueue;
-
 	//------------------------------------------------------//
 	/// Primary GUI for the plugin
 	//------------------------------------------------------//
 	class Gui : public GeDialog
 	{
-		~Gui() { DeleteObj(_banner); }
+		virtual ~Gui() { DeleteObj(_banner); }
 	public:
 		Bool CreateLayout();
 		Bool InitValues();
@@ -84,13 +51,17 @@ namespace HLL
 
 		void ClearStatusText();
 
-		//------------------------------------------------------//
-		/// Enable or disable gadgets related to the servers listening.
-		/// @param[in] val				Whether to disable or enable the gadgets.
-		//------------------------------------------------------//
-		void SetListenGadgets(const Bool &val);
+		void SetUI(Bool enable);
+		void ResetFunctionMetrics();
+		void DoUpdateCheck();
 
-		SimpleListView _lvclients;
+		Bool StartUpdate(Bool setup_client = true);
+		void StopUpdate();
+
+		Bool IsCameraValid();
+		void ResetCamera();
+
+		SimpleListView _LVClients;
 
 		class Banner : public GeUserArea
 		{
@@ -112,7 +83,7 @@ namespace HLL
 	class GuiCommand : public CommandData
 	{
 	public:
-		Bool Execute(BaseDocument *doc);
+		Bool Execute(BaseDocument *doc, GeDialog* parentManager) override;
 
 	private:
 		Gui *oGui;
@@ -122,7 +93,7 @@ namespace HLL
 	/// Registers the plugin.
 	/// @return Bool			True if successful.
 	//------------------------------------------------------//
-	Bool RegisterHLL();
+	Bool RegisterHLL(std::shared_ptr<Tools::UserConfig> userConfig);
 }
 
 #endif // !HLL_GUI_H__

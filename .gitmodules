@@ -1,4 +1,4 @@
 [submodule "uWebSockets"]
 	path = uWebSockets
-	url = https://github.com/xNWP/uWebSockets
-	branch = v0.14
+	url = https://github.com/uNetworking/uWebSockets
+	branch = v19.2.0

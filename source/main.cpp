@@ -3,64 +3,60 @@
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
-#include "main.h"
+#include "hll_server.h"
+#include "hll_gui.h"
+#include "hll_tools.h"
+
+static std::shared_ptr<HLL::Tools::UserConfig> s_userConfig;
 
 Bool PluginStart()
 {
-	String v = "v" + String::IntToString(HLL_VERSION_MAJOR) + "." + String::IntToString(HLL_VERSION_MINOR);
-	if (!HLL::RegisterHLL())
-	{
+	using namespace HLL;
+	
+	s_userConfig = std::make_shared<Tools::UserConfig>();
+	Filename userFile(GeGetPluginPath() + "\\" + Globals::userConfigFile);
+	if (GeFExist(userFile))
+		if (!s_userConfig->LoadFile(userFile))
+			Tools::LogError(GeLoadString(STR_USER_SETTINGS_ERROR));
 
-		ApplicationOutput(GeLoadString(STR_FAIL_LOAD_HLL) + v);
+	String ver = Globals::Version::fullString();
+	if (!RegisterHLL(s_userConfig))
+	{
+		Tools::LogError(GeLoadString(STR_FAIL_LOAD_HLL, ver));
 		return false;
 	}
-	else
-	{
-		ApplicationOutput(GeLoadString(STR_LOADED_HLL) + v);
-	}
 
-	Filename userFile(GeGetPluginPath() + "\\" + HLL_USERCONFIG_FILE);
-	// Create default config file if it does not exist
-	if (!GeFExist(userFile))
-	{
-		// Create head
-		maxon::IoXmlNodeInterface *t = maxon::IoXmlNodeInterface::Alloc(maxon::SourceLocation());
-		t->SetName("settings"_s);
+	Tools::Log(GeLoadString(STR_LOADED_HLL, ver));
 
-		// User Settings
-		auto user = t->AddChild("user"_s);
-
-		user->AddChild("checkforupdates"_s);
-		user->AddChild("hostname"_s);
-		user->AddChild("port"_s);
-		user->AddChild("pollrate"_s);
-		user->AddChild("globalcoords"_s);
-
-		// Write To File
-		maxon::Url u("file:///" + userFile.GetString());
-		auto r = maxon::IoXmlParser::WriteDocument(u, t, true, nullptr);
-		if (r == maxon::FAILED)
-		{
-			const maxon::Error e = r.GetError();
-			ApplicationOutput(e.GetMessage());
-		}
-	}
 
 	return true;
 }
 
 void PluginEnd()
 {
+	using namespace HLL;
+	s_userConfig->SaveFile(Globals::userConfigFile);
 }
 
 Bool PluginMessage(Int32 id, void *data)
 {
+	using namespace HLL;
 	if (id == C4DPL_INIT_SYS)
 	{
 		// Don't start plugin without resource.
 		if (!g_resource.Init())
 			return false;
 		return true;
+	}
+	
+	// Called just before PluginEnd() is sent to each plugin
+	if (id == C4DPL_ENDACTIVITY)
+	{
+		// todo: stop update, maybe?
+
+		auto& sThread = ServerThread::GetInstance();
+		sThread.CloseServer();
+		sThread.Wait(maxon::Seconds(1.0));
 	}
 
 	return true;

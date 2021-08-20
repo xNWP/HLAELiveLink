@@ -1,5 +1,6 @@
 DIALOGSTRINGS DLG_HLL
 {
+	// Static UI Strings
 	DLG_HLL_TITLE					"HLAELiveLink"; // DNT
 	STR_HOSTNAME					"Host Name:";
 	STR_PORT						"Port:";
@@ -9,4 +10,9 @@ DIALOGSTRINGS DLG_HLL
 	STR_GAME						"Game";
 	STR_COPY_URI					"Copy Connect Command To Clipboard";
 	STR_POLLRATE					"Update Rate (Hz):";
+	STR_ORIENTATION					"Offset Rotation:";
+	STR_USE_GLOBAL_POSROT			"Use Global Position/Rotation";
+	STR_FTIME						"f-time:";
+	STR_AVGTIME						"avg-time:";
+	STR_MAXTIME						"max-time:";
 }

@@ -23,13 +23,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings" />
@@ -42,6 +42,9 @@
     <Import Project="$(MAXON_ROOTDIR)\frameworks\python.framework\project\python.framework.includes.props" />
     <Import Project="$(MAXON_ROOTDIR)\frameworks\core.framework\project\core.framework.includes.props" />
     <Import Project="$(MAXON_ROOTDIR)\frameworks\misc.framework\project\misc.framework.includes.props" />
+    <Import Project="$(MAXON_ROOTDIR)\frameworks\system.framework\project\system.framework.includes.props" />
+    <Import Project="$(MAXON_ROOTDIR)\frameworks\network.framework\project\network.framework.includes.props" />
+    <Import Project="$(MAXON_ROOTDIR)\frameworks\command.framework\project\command.framework.includes.props" />
     <Import Project="$(MAXON_ROOTDIR)\frameworks\settings\sourceprocessor.buildevent" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
@@ -53,6 +56,9 @@
     <Import Project="$(MAXON_ROOTDIR)\frameworks\python.framework\project\python.framework.includes.props" />
     <Import Project="$(MAXON_ROOTDIR)\frameworks\core.framework\project\core.framework.includes.props" />
     <Import Project="$(MAXON_ROOTDIR)\frameworks\misc.framework\project\misc.framework.includes.props" />
+    <Import Project="$(MAXON_ROOTDIR)\frameworks\system.framework\project\system.framework.includes.props" />
+    <Import Project="$(MAXON_ROOTDIR)\frameworks\network.framework\project\network.framework.includes.props" />
+    <Import Project="$(MAXON_ROOTDIR)\frameworks\command.framework\project\command.framework.includes.props" />
     <Import Project="$(MAXON_ROOTDIR)\frameworks\settings\sourceprocessor.buildevent" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
@@ -70,14 +76,14 @@
       <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\xCode\vcpkg\installed\x64-windows\include\;../generated/hxx;../res;../source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../uWebSockets/src;../uWebSockets/uSockets/src;$(VCPKG_ROOT)/installed/x64-windows/include/;../generated/hxx;../res;../source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>MAXON_MODULE_ID="com.thatnwp.HLAELiveLink";PRIVATE_MODULE_com_thatnwp_HLAELiveLink;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libeay32.lib;libuv.lib;ssleay32.lib;zlib.lib;uWS.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libuv.lib;uSockets.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries />
       <SubSystem>Console</SubSystem>
-      <AdditionalLibraryDirectories>C:\xCode\vcpkg\installed\x64-windows\lib\;$(ProjectDir)../res/libs/win64/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(VCPKG_ROOT)/installed/x64-windows/lib/;$(ProjectDir)../res/libs/win64/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
       <AdditionalManifestFiles />
@@ -88,14 +94,14 @@
       <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\xCode\vcpkg\installed\x64-windows\include\;../generated/hxx;../res;../source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../uWebSockets/src;../uWebSockets/uSockets/src;$(VCPKG_ROOT)/installed/x64-windows/include/;../generated/hxx;../res;../source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>MAXON_MODULE_ID="com.thatnwp.HLAELiveLink";PRIVATE_MODULE_com_thatnwp_HLAELiveLink;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libeay32.lib;libuv.lib;ssleay32.lib;zlib.lib;uWS.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libuv.lib;uSockets.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries />
       <SubSystem>Console</SubSystem>
-      <AdditionalLibraryDirectories>C:\xCode\vcpkg\installed\x64-windows\lib\;$(ProjectDir)../res/libs/win64/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(VCPKG_ROOT)/installed/x64-windows/lib/;$(ProjectDir)../res/libs/win64/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
       <AdditionalManifestFiles />
@@ -158,8 +164,33 @@
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
+    <ProjectReference Include="$(MAXON_ROOTDIR)\frameworks\system.framework\project\system.framework.vcxproj">
+      <Project>{137B806E-55B4-8983-0009-38CB8C5CDEA3}</Project>
+      <Private>true</Private>
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <ProjectReference Include="$(MAXON_ROOTDIR)\frameworks\network.framework\project\network.framework.vcxproj">
+      <Project>{47CEB888-343F-CE3A-0009-38CB8C5CDEA3}</Project>
+      <Private>true</Private>
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <ProjectReference Include="$(MAXON_ROOTDIR)\frameworks\command.framework\project\command.framework.vcxproj">
+      <Project>{31F40DC0-08CA-5317-0009-38CB8C5CDEA3}</Project>
+      <Private>true</Private>
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\generated\hxx\interface_registration.cpp" />
     <ClCompile Include="..\generated\hxx\register.cpp" />
     <ClCompile Include="..\source\hll_gui.cpp" />
     <ClCompile Include="..\source\hll_maths.cpp" />

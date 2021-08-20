@@ -4,25 +4,90 @@
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
 #include "hll_server.h"
+#include "hll_tools.h"
 
-HLL::ServerThread::ServerThread(const char *hostname, const Int32 &port) : _host(_strdup(hostname)), _port(port),
-_xp(0), _yp(0), _zp(0), _xr(0), _yr(0), _zr(0), _fov(0)
+static maxon::ThreadRefTemplate<HLL::ServerThread> s_ServerThread;
+
+HLL::ServerThread& HLL::ServerThread::GetInstance()
 {
-	this->_hub.onMessage([this](uWS::WebSocket<uWS::SERVER> *ws, char *message, size_t length, uWS::OpCode opCode)
+	static std::mutex mut;
+	std::scoped_lock<std::mutex> lk(mut);
+	if (!s_ServerThread)
+	{
+		s_ServerThread = ServerThread::Create().GetValue();
+		s_ServerThread->_guiHandlingMessage = maxon::ConditionVariableRef::Create().GetValue();
+		s_ServerThread->_guiHandlingMessage.Set();
+	}
+	return *s_ServerThread;
+}
+
+maxon::Result<void> HLL::ServerThread::operator()()
+{
+	uWS::App::WebSocketBehavior<ClientData> wsBehaviour;
+	wsBehaviour.compression = uWS::CompressOptions::DISABLED;
+	wsBehaviour.maxPayloadLength = 256; // 256 Bytes
+	wsBehaviour.maxBackpressure = 4 * 1024; // 4 KiB
+	wsBehaviour.closeOnBackpressureLimit = false;
+	wsBehaviour.sendPingsAutomatically = true;
+	wsBehaviour.idleTimeout = 10;
+	wsBehaviour.upgrade = nullptr;
+
+	wsBehaviour.open = [this](auto* ws)
+	{
+		_guiHandlingMessage.Wait(); // don't modify clients until gui is done handling event
+		static Int index = -1;
+		String ClientName = GeLoadString(STR_CLIENT) + " " + String::IntToString(++index);
+		HLL::Tools::Log(GeLoadString(STR_SERVER_CONNECT, ClientName));
+		String HelloClient = "echo " + GeLoadString(STR_CLIENT_CONNECT, ClientName);
+
+		SendSocket(HelloClient, ws);
+		_clients.push_back(Client(ClientName.GetCStringCopy(), ws));
+
+		// Let Gui know we have a new client + their index in the list.
+		_guiHandlingMessage.Clear();
+		SpecialEventAdd(Globals::pluginId, HLL_EVMSG_CLIENT_CONNECT, _clients.size() - 1);
+	};
+
+	wsBehaviour.close = [this](auto* ws, int, std::string_view)
+	{
+		_guiHandlingMessage.Wait();
+
+		// Find the client who disconnected
+		for (size_t i = 0; i < _clients.size(); i++)
+		{
+			if (_clients[i]._socket == ws)
+			{
+				// erase the entry from our clients vector
+				String ClientName = _clients[i]._name;
+				_clients.erase(_clients.begin() + i);
+				HLL::Tools::Log(GeLoadString(STR_SERVER_DISCONNECT, ClientName));
+
+				// Let Gui know we lost a client
+				_guiHandlingMessage.Clear();
+				SpecialEventAdd(Globals::pluginId, HLL_EVMSG_CLIENT_DISCONNECT, i);
+				return; // exit
+			}
+		}
+
+		// should never reach this point !!!
+		HLL::Tools::LogError(GeLoadString(STR_UNEXPECTED_ERROR, "hll_server.cpp ClientCloseCallback"_s));
+	};
+
+	wsBehaviour.message = [this](auto* ws, std::string_view message, uWS::OpCode)
 	{
 		// Keep track of where we are in the data
 		UInt64 it = 0;
 
 		// Catch empty buffer
-		if (length == 0)
+		if (message.length() == 0)
 			return;
 
-		while (it < length)
+		while (it < message.length())
 		{
 			String cmd = "";
-			while ((*(message + it) != '\0') && (it < length))
+			while ((message[it] != '\0') && (it < message.length()))
 			{
-				cmd.AppendChar(*(message + it));
+				cmd.AppendChar(message[it]).GetValue();
 				it++;
 			}
 			it++;
@@ -30,12 +95,13 @@ _xp(0), _yp(0), _zp(0), _xr(0), _yr(0), _zr(0), _fov(0)
 			if (cmd == "dataStart")
 			{
 				// Find the client who is sending data
-				for (size_t i = 0; i < this->_clients.size(); i++)
+				for (size_t i = 0; i < _clients.size(); i++)
 				{
-					if (this->_clients[i]._socket == ws)
+					if (_clients[i]._socket == ws)
 					{
 						// Notify GUI
-						SpecialEventAdd(ID_HLAELIVELINK, HLL_EVMSG_DATASTART, i);
+						_guiHandlingMessage.Clear();
+						SpecialEventAdd(Globals::pluginId, HLL_EVMSG_DATASTART, i);
 						return; // exit
 					}
 				}
@@ -45,12 +111,13 @@ _xp(0), _yp(0), _zp(0), _xr(0), _yr(0), _zr(0), _fov(0)
 			if (cmd == "dataStop")
 			{
 				// Find the client who stopped sending data
-				for (size_t i = 0; i < this->_clients.size(); i++)
+				for (size_t i = 0; i < _clients.size(); i++)
 				{
-					if (this->_clients[i]._socket == ws)
+					if (_clients[i]._socket == ws)
 					{
 						// Notify GUI
-						SpecialEventAdd(ID_HLAELIVELINK, HLL_EVMSG_DATASTOP, i);
+						_guiHandlingMessage.Clear();
+						SpecialEventAdd(Globals::pluginId, HLL_EVMSG_DATASTOP, i);
 						return; // exit
 					}
 				}
@@ -62,6 +129,7 @@ _xp(0), _yp(0), _zp(0), _xr(0), _yr(0), _zr(0), _fov(0)
 				// skip time
 				it += 4;
 
+				std::scoped_lock<std::mutex> lock(_dataMutex);
 				this->_xp = FourByteFloatLE(message, it);
 				it += 4;
 				this->_yp = FourByteFloatLE(message, it);
@@ -80,147 +148,125 @@ _xp(0), _yp(0), _zp(0), _xr(0), _yr(0), _zr(0), _fov(0)
 				continue;
 			}
 		}
-	});
+	};
 
-	this->_hub.onConnection([this](uWS::WebSocket<uWS::SERVER> *ws, uWS::HttpRequest req)
-	{
-		static Int index = -1;
-
-		String ClientName = GeLoadString(STR_CLIENT) + " " + String::IntToString(++index);
-
-		ApplicationOutput("| HLAELiveLink - " + GeLoadString(STR_CLIENT_CONNECT) + "[" + ClientName + "]");
-
-		String HelloClient = "echo " + GeLoadString(STR_HELLO_CLIENT) + " [" + ClientName + "]";
-
-		SendSocket(HelloClient, ws);
-		this->_clients.push_back(Client(ClientName.GetCStringCopy(), ws));
-
-		// Let Gui know we have a new client + their index in the list.
-		SpecialEventAdd(ID_HLAELIVELINK, HLL_EVMSG_CLIENT_CONNECT, this->_clients.size() - 1);
-	});
-
-	this->_hub.onDisconnection([this](uWS::WebSocket<uWS::SERVER> *ws, int code, char *message, size_t length)
-	{
-		// Find the client who disconnected
-		for (size_t i = 0; i < this->_clients.size(); i++)
+	uWS::App app = uWS::App().ws<ClientData>("/*", std::move(wsBehaviour));
+	app.listen(_port, [this](auto* listen_socket)
 		{
-			if (this->_clients[i]._socket == ws)
+			if (listen_socket)
 			{
-				// erase the entry from our clients vector
-				String ClientName = this->_clients[i]._name;
-				this->_clients.erase(this->_clients.begin() + i);
-				ApplicationOutput("| HLAELiveLink - " + GeLoadString(STR_CLIENT_DISCONNECT) + "[" + ClientName + "]");
+				String m = GeLoadString(STR_STARTING_SERVER, String(_host), String::IntToString(_port));
+				HLL::Tools::Log(m);
 
-				// Let Gui know we lost a client
-				SpecialEventAdd(ID_HLAELIVELINK, HLL_EVMSG_CLIENT_DISCONNECT, i);
-				return; // exit
+				// Notify GUI of successful listen
+				_guiHandlingMessage.Clear();
+				SpecialEventAdd(Globals::pluginId, HLL_EVMSG_LISTEN_SUCCESS);
+				this->_listen_socket = listen_socket;
 			}
-		}
-
-		// should never reach this point !!!
-		// possibility of a race condition, although that should be mitigated by the fact uWS is single threaded.
-		ApplicationOutput(GeLoadString(STR_UNEXPECTED_ERROR) + "hll_server.cpp LN 47");
-	});
-}
-
-maxon::Result<void> HLL::ServerThread::operator ()()
-{
-	if (this->_hub.listen(this->_host, this->_port))
-	{
-		String m = GeLoadString(STR_STARTING_SERVER) + " [" + GeLoadString(STR_HOST) +
-			": " + this->_host + " " + GeLoadString(STR_PORT) + ": " + String::IntToString(this->_port) + "]";
-		ApplicationOutput(m);
-
-		this->_listening = true;
-
-		// Notify GUI of successful listen
-		SpecialEventAdd(ID_HLAELIVELINK, HLL_EVMSG_LISTEN_SUCCESS);
-
-		// Start Server
-		this->_hub.run();
-	}
-	else
-	{
-		// server failed to run, notify gui.
-		SpecialEventAdd(ID_HLAELIVELINK, HLL_EVMSG_LISTEN_FAILED);
-		return maxon::UnknownError(MAXON_SOURCE_LOCATION);
-	}
-
+			else
+			{
+				// server failed to run, notify gui.
+				_guiHandlingMessage.Clear();
+				SpecialEventAdd(Globals::pluginId, HLL_EVMSG_LISTEN_FAILED);
+			}
+		});
+	
+	app.run(); // blocking if successful
 	return maxon::OK;
 }
 
 void HLL::ServerThread::SendClient(Int32 index, const String &command)
 {
-	SendSocket(command, this->_clients[index]._socket);
+	SendSocket(command, _clients[index]._socket);
 }
 
-void HLL::ServerThread::SendSocket(const String &command, uWS::WebSocket<uWS::SERVER> *ws)
+void HLL::ServerThread::SendSocket(const String& command, void* ws)
 {
-	String pl = "exec " + command;
-
-	char *cpl = NewMemClear(char, pl.GetCStringLen() + 1).GetValue();
-	pl.GetCString(cpl, pl.GetCStringLen() + 1);
-	// Manually inserting null-terminator since C4D's GetCString function ignores it otherwise.
-	cpl[4] = '\0';
-
-	ws->send(cpl, pl.GetCStringLen() + 1, uWS::OpCode::TEXT);
+	std::string msg = "exec " + std::string((command.GetCStringCopy())) + "0";
+	msg[4] = msg[msg.length() - 1] = '\0';
+	((uWS::WebSocket<false, true, HLL::ClientData>*)ws)->send(msg, uWS::OpCode::BINARY);
 }
 
-const std::vector<HLL::Client>& HLL::ServerThread::GetClients() const
+std::vector<HLL::Client> HLL::ServerThread::GetClients()
 {
 	return this->_clients;
 }
 
-void HLL::ServerThread::RenameClient(const int &index, const char *str)
+void HLL::ServerThread::RenameClient(Int32 index, const String& str)
 {
-	char *oldName = this->_clients[index]._name;
-	this->_clients[index]._name = _strdup(str);
+	_guiHandlingMessage.Wait();
+	String oldName = _clients[index]._name;
+	_clients[index]._name = str;
 
-	String ntfy = GeLoadString(STR_SERVER_RENAME) + oldName + " => " + str;
-	ApplicationOutput(ntfy);
-	SendClient(index, "echo " + ntfy);
+	String ntfy = String(oldName) + " => " + str;
+	HLL::Tools::Log(GeLoadString(STR_SERVER_RENAME, ntfy));
+	SendClient(index, "echo " + GeLoadString(STR_CLIENT_RENAME, ntfy));
 }
 
-void HLL::ServerThread::DisconnectClient(const int &index)
+void HLL::ServerThread::DisconnectClient(Int32 index)
 {
-	String ClientName = this->_clients[index]._name;
+	String ClientName = _clients[index]._name;
 
-	SendClient(index, "echo " + GeLoadString(STR_SERVER_DISCONNECT));
+	SendClient(index, "echo " + GeLoadString(STR_CLIENT_DISCONNECT));
 	SendClient(index, "mirv_pgl dataStop; mirv_pgl stop");
-	ApplicationOutput(GeLoadString(STR_SERVER_DISCONNECT_SERVERSIDE) + "[" + ClientName + "]");
 }
 
-void HLL::ServerThread::CloseServer()
+void HLL::ServerThread::StartServer(const String& host, Int32 port)
 {
-	for (Int32 i = 0; i < static_cast<Int32>(this->_clients.size()); i++)
-		DisconnectClient(i);
+	if (IsRunning())
+	{
+		CloseServer();
+		Wait();
+	}
 
-	this->_hub.getDefaultGroup<uWS::SERVER>().close();
+	_host = host;
+	_port = port;
 
-	this->_listening = false;
+	maxon::Error err = Start().GetError();
+	if (err) Tools::LogError(err.GetMessage());
 }
 
-Bool HLL::ServerThread::Closed()
+Bool HLL::ServerThread::CloseServer()
 {
-	return !this->_listening;
+	if (IsRunning())
+	{
+		for (Int32 i = 0; i < static_cast<Int32>(_clients.size()); i++)
+			DisconnectClient(i);
+
+		us_listen_socket_close(false, this->_listen_socket);
+	}
+
+	while (IsRunning()) Wait(maxon::Seconds(1));
+	s_ServerThread.CancelAndWait();
+	s_ServerThread = nullptr;
+
+	return true;
 }
 
 Vector32 HLL::ServerThread::GetPositionVec()
 {
+	std::scoped_lock<std::mutex> lock(_dataMutex);
 	return Vector32(this->_xp, this->_yp, this->_zp);
 }
 
 Vector32 HLL::ServerThread::GetRotationVec()
 {
+	std::scoped_lock<std::mutex> lock(_dataMutex);
 	return Vector32(this->_xr, this->_yr, this->_zr);
 }
 
 Float32 HLL::ServerThread::GetFov()
 {
+	std::scoped_lock<std::mutex> lock(_dataMutex);
 	return this->_fov;
 }
 
-Float32 HLL::ServerThread::FourByteFloatLE(char * data, UInt64 offset)
+void HLL::ServerThread::EventHandled()
+{
+	_guiHandlingMessage.Set();
+}
+
+Float32 HLL::ServerThread::FourByteFloatLE(std::string_view data, UInt64 offset)
 {
 	float f;
 	char s[] = { data[offset], data[offset + 1],

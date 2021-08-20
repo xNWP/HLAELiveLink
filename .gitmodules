@@ -1,0 +1,3 @@
+[submodule "plugins/HLAELiveLink/uWebSockets"]
+	path = plugins/HLAELiveLink/uWebSockets
+	url = https://github.com/uNetworking/uWebSockets

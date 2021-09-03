@@ -18,6 +18,7 @@ ModuleId=com.thatnwp.HLAELiveLink
 // Exclude uWebSockets from project
 Exclude.Win=/uWebSockets/
 
-AdditionalIncludeDirectories=../uWebSockets/src;../uWebSockets/uSockets/src;$(VCPKG_ROOT)/installed/x64-windows/include/
-AdditionalLibraryDirectories=$(VCPKG_ROOT)/installed/x64-windows/lib/;$(ProjectDir)../res/libs/win64/
-AdditionalDependencies=libuv.lib;uSockets.lib
+AdditionalPreprocessorDefinitions=LIBUS_NO_SSL;UWS_NO_ZLIB
+AdditionalIncludeDirectories=../uWebSockets/src;../uWebSockets/uSockets/src
+AdditionalLibraryDirectories=$(ProjectDir)../uWebSockets/uSockets/x64/Release
+AdditionalDependencies=uSockets.lib

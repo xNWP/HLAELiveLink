@@ -7,18 +7,6 @@
 #define HLL_SERVER_H__
 
 #include "c4d.h"
-#include "../res/c4d_symbols.h"
-#include "hll_globals.h"
-#include <sstream>
-#include "maxon/thread.h"
-#pragma warning(push, 0)
-#ifdef MAXON_TARGET_WINDOWS
-#include "App.h"
-#include "libusockets.h"
-#include "maxon/utilities/undef_win_macros.h"
-#endif
-#pragma warning(pop)
-#include "maxon/conditionvariable.h"
 
 #define HLL_EVMSG_CLIENT_CONNECT			1
 #define HLL_EVMSG_CLIENT_DISCONNECT			2
@@ -28,6 +16,11 @@
 #define HLL_EVMSG_DATASTOP					6
 
 #include "hll_tools.h"
+#include "maxon/conditionvariable.h"
+#include <mutex>
+#include "maxon/thread.h"
+
+struct us_listen_socket_t;
 
 namespace HLL
 {

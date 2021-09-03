@@ -4,6 +4,20 @@
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
 #include "hll_server.h"
+#include "../res/c4d_symbols.h"
+#include "hll_globals.h"
+#include <sstream>
+#include "maxon/thread.h"
+#pragma warning(push, 0)
+#ifdef MAXON_TARGET_WINDOWS
+#include <algorithm>
+#include "App.h"
+#include "libusockets.h"
+#include "maxon/utilities/undef_win_macros.h"
+#endif
+#pragma warning(pop)
+#include "maxon/conditionvariable.h"
+
 #include "hll_tools.h"
 
 static maxon::ThreadRefTemplate<HLL::ServerThread> s_ServerThread;

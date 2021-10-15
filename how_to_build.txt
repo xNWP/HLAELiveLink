@@ -1,0 +1,40 @@
+1. Clone the repository, including submodules
+	git clone https://github.com/xNWP/HLAELiveLink --recurse-submodules
+	
+2. Extract the frameworks folder from the sdk.zip file found with your Cinema
+4D install, typically found at:
+	C:\Program Files\Maxon Cinema 4D [version]
+to the root of the repository folder.
+
+3. Download the project tool for your Cinema 4D version from the Maxon
+developers download page (https://developers.maxon.net/?page_id=1118). Run the
+plugin tool from a terminal on the repository folder:
+	kernel_app_64bit.exe g_updateproject=C:\path\to\HLAELiveLink
+	
+4. Open the generated plugins.sln file at:
+	plugins/project
+Don't retarget the SDK or platform toolset, you may to need to install the
+proper SDK and platform toolsets with the Visual Studio Installer to build
+HLAELiveLink. Open up the hlaelivelink project properties and note the
+Platform Toolset and Windows SDK Version undet the General tab, we'll need to
+know these for building uSockets.
+
+5. Next we need to build uSockets, a dependency for uWebSockets. Open the
+uSockets.vcxproj file at:
+	plugins/HLAELiveLink/uWebSockets/uSockets
+You should retarget the project to use the same SDK & platform tools that
+you're compiling HLAELiveLink with. Select Release x64 for the solution
+configuration and platform. Open the solution properties and set:
+	General > Project Defaults > Configuration Type = Static library (.lib)
+	C/C++ > Code Generation > Runtime Library = Multi-threaded DLL (/MD)
+Apply the properties and build the solution.
+
+6. Return to the HLAELiveLink solution (plugins.sln) and you should be able
+to compile for Debug/Release.
+
+7. (optional debugging) To allow debugging + autoloading of our plugin, open
+the hlaelivelink project properties, and set the following properties:
+	Debugging > Command = C:\path\to\Maxon Cinema 4D [version]\Cinema 4D.exe
+	Debugging > Command Arguments = g_additionalModulePath=$(SolutionDir)..
+Right click on the hlaelivelink project and click Set as StartUp Project,
+start the debugger and Cinema 4D should launch with HLAELiveLink loaded.

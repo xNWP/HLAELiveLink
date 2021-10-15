@@ -1,5 +1,5 @@
 1. Clone the repository, including submodules
-	git clone https://github.com/xNWP/HLAELiveLink --recurse-submodules
+	git clone https://github.com/xNWP/HLAELiveLink --recursive
 	
 2. Extract the frameworks folder from the sdk.zip file found with your Cinema
 4D install, typically found at:
@@ -16,15 +16,24 @@ plugin tool from a terminal on the repository folder:
 Don't retarget the SDK or platform toolset, you may to need to install the
 proper SDK and platform toolsets with the Visual Studio Installer to build
 HLAELiveLink. Open up the hlaelivelink project properties and note the
-Platform Toolset and Windows SDK Version undet the General tab, we'll need to
+Platform Toolset and Windows SDK Version under the General tab, we'll need to
 know these for building uSockets.
 
-5. Next we need to build uSockets, a dependency for uWebSockets. Open the
-uSockets.vcxproj file at:
+5a. Next we need to build uSockets, a dependency for uWebSockets. uSockets
+requires libuv, which we use as a dynamic library acquired through vcpkg 
+(https://github.com/microsoft/vcpkg). Clone vcpkg and then execute the
+following commands:
+	.\bootstrap-vcpkg.bat
+	.\vcpkg integrate install
+	.\vcpkg install libuv:x64-windows
+When we build HLAELiveLink, vcpkg will copy the libuv.dll file into the build
+directory, copy that file to res/libs/win64 for debugging/packaging.
+
+5b. Open the uSockets.vcxproj file at:
 	plugins/HLAELiveLink/uWebSockets/uSockets
 You should retarget the project to use the same SDK & platform tools that
 you're compiling HLAELiveLink with. Select Release x64 for the solution
-configuration and platform. Open the solution properties and set:
+configuration and platform. Open the project properties and set:
 	General > Project Defaults > Configuration Type = Static library (.lib)
 	C/C++ > Code Generation > Runtime Library = Multi-threaded DLL (/MD)
 Apply the properties and build the solution.

@@ -11,7 +11,13 @@
 #pragma warning(push, 0)
 #ifdef MAXON_TARGET_WINDOWS
 #include <algorithm>
+
+// Disable this error for v142 msvc
+#pragma warning(push)
+#pragma warning(disable : 4456)
 #include "App.h"
+#pragma warning(pop)
+
 #include "libusockets.h"
 #include "maxon/utilities/undef_win_macros.h"
 #endif

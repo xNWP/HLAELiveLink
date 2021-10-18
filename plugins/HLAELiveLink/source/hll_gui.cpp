@@ -6,6 +6,7 @@
 #include "hll_gui.h"
 #include "c4d_general.h"
 #include <deque>
+#include <functional>
 
 namespace HLL
 {
@@ -209,7 +210,6 @@ namespace HLL
 
 		if (setup_client)
 		{
-			auto& sThread = ServerThread::GetInstance();
 			sThread.SendClient(s_guiData->activeClient, "echo " + GeLoadString(transmit ? STR_CLIENT_LIVE_RECEIVE : STR_CLIENT_LIVE_TRANSMIT));
 			if (transmit) sThread.SendClient(s_guiData->activeClient, "mirv_input camera");
 			else sThread.SendClient(s_guiData->activeClient, "mirv_pgl dataStart");

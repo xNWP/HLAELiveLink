@@ -2,6 +2,7 @@
 #define HLL_GLOBALS_H__
 
 #include "maxon/string.h"
+#include <string>
 
 namespace HLL
 {

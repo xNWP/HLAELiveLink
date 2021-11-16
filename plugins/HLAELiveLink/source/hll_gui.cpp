@@ -10,6 +10,8 @@
 
 namespace HLL
 {
+	GeDialog* g_HLL_Gui = nullptr;
+
 	struct StatusMessage
 	{
 		StatusMessage(Int32 duration, const String &msg) : timeleft(duration), message(msg) { }
@@ -908,8 +910,8 @@ namespace HLL
 	Bool GuiCommand::Execute(BaseDocument *doc, GeDialog* parentManager)
 	{
 		// Called when plugin is selected from menu.
-		oGui = NewObjClear(Gui);
-		if (!oGui->Open(DLG_TYPE::ASYNC, Globals::pluginId))
+		g_HLL_Gui = NewObjClear(Gui);
+		if (!g_HLL_Gui->Open(DLG_TYPE::ASYNC, Globals::pluginId))
 			return false;
 
 		return true;

@@ -28,6 +28,8 @@
 
 static maxon::ThreadRefTemplate<HLL::ServerThread> s_ServerThread;
 
+namespace HLL { extern GeDialog* g_HLL_Gui; }
+
 HLL::ServerThread& HLL::ServerThread::GetInstance()
 {
 	static std::mutex mut;
@@ -64,8 +66,7 @@ maxon::Result<void> HLL::ServerThread::operator()()
 		_clients.push_back(Client(ClientName.GetCStringCopy(), ws));
 
 		// Let Gui know we have a new client + their index in the list.
-		_guiHandlingMessage.Clear();
-		SpecialEventAdd(Globals::pluginId, HLL_EVMSG_CLIENT_CONNECT, _clients.size() - 1);
+		SignalEventToGui(HLL_EVMSG_CLIENT_CONNECT, _clients.size() - 1);
 	};
 
 	wsBehaviour.close = [this](auto* ws, int, std::string_view)
@@ -83,8 +84,7 @@ maxon::Result<void> HLL::ServerThread::operator()()
 				HLL::Tools::Log(GeLoadString(STR_SERVER_DISCONNECT, ClientName));
 
 				// Let Gui know we lost a client
-				_guiHandlingMessage.Clear();
-				SpecialEventAdd(Globals::pluginId, HLL_EVMSG_CLIENT_DISCONNECT, i);
+				SignalEventToGui(HLL_EVMSG_CLIENT_DISCONNECT, i);
 				return; // exit
 			}
 		}
@@ -120,8 +120,7 @@ maxon::Result<void> HLL::ServerThread::operator()()
 					if (_clients[i]._socket == ws)
 					{
 						// Notify GUI
-						_guiHandlingMessage.Clear();
-						SpecialEventAdd(Globals::pluginId, HLL_EVMSG_DATASTART, i);
+						SignalEventToGui(HLL_EVMSG_DATASTART, i);
 						return; // exit
 					}
 				}
@@ -136,8 +135,7 @@ maxon::Result<void> HLL::ServerThread::operator()()
 					if (_clients[i]._socket == ws)
 					{
 						// Notify GUI
-						_guiHandlingMessage.Clear();
-						SpecialEventAdd(Globals::pluginId, HLL_EVMSG_DATASTOP, i);
+						SignalEventToGui(HLL_EVMSG_DATASTOP, i);
 						return; // exit
 					}
 				}
@@ -179,15 +177,13 @@ maxon::Result<void> HLL::ServerThread::operator()()
 				HLL::Tools::Log(m);
 
 				// Notify GUI of successful listen
-				_guiHandlingMessage.Clear();
-				SpecialEventAdd(Globals::pluginId, HLL_EVMSG_LISTEN_SUCCESS);
+				SignalEventToGui(HLL_EVMSG_LISTEN_SUCCESS);
 				this->_listen_socket = listen_socket;
 			}
 			else
 			{
 				// server failed to run, notify gui.
-				_guiHandlingMessage.Clear();
-				SpecialEventAdd(Globals::pluginId, HLL_EVMSG_LISTEN_FAILED);
+				SignalEventToGui(HLL_EVMSG_LISTEN_FAILED);
 			}
 		});
 	
@@ -284,6 +280,15 @@ Float32 HLL::ServerThread::GetFov()
 void HLL::ServerThread::EventHandled()
 {
 	_guiHandlingMessage.Set();
+}
+
+void HLL::ServerThread::SignalEventToGui(UInt p1, UInt p2)
+{
+	if (g_HLL_Gui->IsOpen())
+	{
+		_guiHandlingMessage.Clear();
+		SpecialEventAdd(Globals::pluginId, p1, p2);
+	}
 }
 
 Float32 HLL::ServerThread::FourByteFloatLE(std::string_view data, UInt64 offset)

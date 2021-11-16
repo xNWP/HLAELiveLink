@@ -84,9 +84,6 @@ namespace HLL
 	{
 	public:
 		Bool Execute(BaseDocument *doc, GeDialog* parentManager) override;
-
-	private:
-		Gui *oGui;
 	};
 
 	//------------------------------------------------------//

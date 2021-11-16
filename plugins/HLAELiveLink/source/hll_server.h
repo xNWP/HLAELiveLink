@@ -130,6 +130,8 @@ namespace HLL
 		//------------------------------------------------------//
 		Float32 FourByteFloatLE(std::string_view data, UInt64 offset);
 
+		void SignalEventToGui(UInt p1 = 0Ui64, UInt p2 = 0Ui64);
+
 		std::vector<Client> _clients;
 		us_listen_socket_t* _listen_socket;
 		std::mutex _dataMutex;

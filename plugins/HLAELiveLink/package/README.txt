@@ -7,9 +7,9 @@ Delete any existing HLAELiveLink Installations.
 
 Copy the 'HLAELiveLink' folder into the Cinema 4D Plugins folder.
 
-    C:\Program Files\MAXON\Cinema 4D\plugins
+    C:\Program Files\Maxon Cinema 4D RXX\plugins
         OR
-    C:\Users\$USERNAME$\AppData\Roaming\MAXON\Cinema 4D\plugins
+    %AppData%\MAXON\Maxon Cinema 4D RXX\plugins
     *You may need to create the plugins folder
 
 Start Cinema 4D and see if the plugin loaded by

@@ -1,2 +1,3 @@
 frameworks
 *.manifest
+plugins/HLAELiveLink/res/libs/win64/libuv.dll
